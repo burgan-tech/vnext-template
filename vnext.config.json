@@ -29,11 +29,11 @@
     "visibility": "public",
     "metadata": {
       "description": "Exported components for {domainName} domain",
-      "maintainer": "Amorphie Team",
+      "maintainer": "vNext Team",
       "license": "MIT",
       "keywords": [
         "{domainName}",
-        "amorphie",
+        "vnext",
         "workflow",
         "domain"
       ]
@@ -51,7 +51,7 @@
     "validateSchemas": true,
     "allowedHosts": [
       "registry.npmjs.org",
-      "npm.amorphie.com",
+      "npm.vnext.com",
       "npm.pkg.github.com"
     ],
     "schemaValidationRules": {

@@ -3,18 +3,11 @@
 ## Project Structure Rules
 - Every folder represents a workflow (Schema, View, Task, Function, etc.)
 - Files inside folders are instances of that workflow
-- All files must follow semantic versioning: `[name].[Version].json` (e.g., `task-example.1.0.0.json`)
-
-### File Naming Convention (Linter Rule)
-- Definition file names MUST be composed of: `key` + `.` + `version` + `.json`
-- The filename must exactly match the combination of the definition's `key` attribute and `version` attribute
-- Example: If key="schema" and version="1.0.0", filename must be `schema.1.0.0.json`
-- This ensures consistency and enables automated validation/linting
 
 ## Schema Instance Pattern Rules
 
 ### Platform Managed Properties (InstanceBase)
-- Schema instances MUST include: `key`, `version`, `domain`, `flow`, `flowVersion`, `tags`
+- Schema instances MUST include: `key`, `version`, `domain`, `flow`, `flowVersion`
 - Schema instances MUST NOT include: `labels` (labels belong to business logic)
 - Optional fields: `id`, `eTag` (added by platform in production)
 
@@ -35,8 +28,8 @@
   - Task → workflow: "Task"
 
 ### Reference Format
-- Always use local file references: `reference.1.0.0.json#/attributes`
-- Never use: `https://schemas.amorphie.com/...`
+- Always use local file references: `reference.json#/attributes`
+- Never use: `https://schemas.vnext.com/...`
 - Use `#/attributes` to reference the schema inside attributes
 
 ## JSON Schema Standards
@@ -72,17 +65,6 @@ All lifecycle workflows must have:
 - `reactivate` → passive to active
 - `archive` → Archive in passive
 
-### modelSchema References
-All workflows reference schemas in Schema workflow:
-```json
-"modelSchema": {
-  "key": "reference",
-  "domain": "core",
-  "workflow": "schema",  // Always points to Schema workflow
-  "version": "1.0.0"
-}
-```
-
 ## Task Array Pattern
 For onEntries, onExits:
 ```json
@@ -98,7 +80,7 @@ For onEntries, onExits:
 ### ❌ DON'T
 - Add labels to schema instances
 - Add type property to references
-- Use https://schemas.amorphie.com URLs
+- Use https://schemas.vnext.com URLs
 - Create files without version numbers
 - Add non-existent properties (permissions, conditions, metadata to State)
 - Use simple object definitions instead of schema references
@@ -108,7 +90,7 @@ For onEntries, onExits:
 - Use workflow field as type indicator in references
 - Use local file references with #/attributes
 - Follow semantic versioning for all files
-- Reference code.1.0.0.json for mapping properties
+- Reference code.json for mapping properties
 - Read original files before making changes
 
 ## Development Guidelines
