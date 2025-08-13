@@ -6,7 +6,6 @@
   "scripts": {
     "test": "node test.js",
     "validate": "node validate.js",
-    "build": "echo 'Build completed - package is ready'",
     "prepublishOnly": "npm run validate"
   },
   "keywords": [
@@ -39,7 +38,11 @@
     "README.md",
     "package.json",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "test.js",
+    "validate.js",
+    "test-domain-detection.sh",
+    ".cursorrules"
   ],
   "engines": {
     "node": ">=16.0.0"
