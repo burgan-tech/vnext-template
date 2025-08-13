@@ -6,6 +6,7 @@
   "scripts": {
     "test": "node test.js",
     "validate": "node validate.js",
+    "build": "echo 'Build completed - package is ready'",
     "prepublishOnly": "npm run validate"
   },
   "keywords": [
