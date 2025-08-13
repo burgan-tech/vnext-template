@@ -1,28 +1,46 @@
 {
-  "name": "{packageName}",
+  "name": "@burgan-tech/vnext-template",
   "version": "1.0.0",
-  "description": "vNext project created with @vnext/cli",
+  "description": "vNext template package with domain-based workflow components and schema validation",
   "main": "index.js",
   "scripts": {
+    "test": "node test.js",
+    "validate": "node validate.js",
+    "build": "echo 'Build completed - package is ready'",
+    "prepublishOnly": "npm run validate"
   },
   "keywords": [
     "vnext",
-    "{packageName}",
-    "{domainName}"
+    "workflow",
+    "template",
+    "schema",
+    "domain-driven",
+    "burgan-tech",
+    "process-automation"
   ],
-  "author": "{domainName} Team",
+  "author": "Burgan Tech Team <dev@burgan-tech.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/my-organization/{packageName}.git"
+    "url": "git+https://github.com/burgan-tech/vnext-template.git"
   },
   "bugs": {
-    "url": "https://github.com/my-organization/{packageName}/issues"
+    "url": "https://github.com/burgan-tech/vnext-template/issues"
   },
-  "homepage": "https://github.com/my-organization/{packageName}#readme",
+  "homepage": "https://github.com/burgan-tech/vnext-template#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"
+  },
+  "files": [
+    "index.js",
+    "{domainName}/",
+    "vnext.config.json",
+    "README.md",
+    "package.json"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
   },
   "dependencies": {
     "@vnext/core-reference": "^1.0.0"

@@ -1,172 +1,252 @@
-# {packageName}
+# @burgan-tech/vnext-template
 
-A domain-driven vNext project created using [@vnext/cli](https://www.npmjs.com/package/@vnext/cli).
+A structured template package for vNext workflow components with domain-based architecture. This package provides a foundation for building scalable workflow systems with schemas, tasks, views, functions, and extensions.
 
-## 📋 Table of Contents
+[![npm version](https://badge.fury.io/js/%40burgan-tech%2Fvnext-template.svg)](https://badge.fury.io/js/%40burgan-tech%2Fvnext-template)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-- [Getting Started](#-getting-started)
-- [Project Structure](#-project-structure)
-- [Domain Configuration](#-domain-configuration)
-- [Component Types](#-component-types)
-- [File Naming Conventions](#-file-naming-conventions)
-- [VSCode Integration](#-vscode-integration)
-- [Available Scripts](#-available-scripts)
-- [Development Workflow](#-development-workflow)
-- [Validation & Linting](#-validation--linting)
-- [Best Practices](#-best-practices)
+## 🚀 Features
 
-## 🚀 Getting Started
+- **Domain-Driven Architecture**: Organized by business domains with clear separation of concerns
+- **Component-Based Structure**: Modular design with schemas, workflows, tasks, views, functions, and extensions
+- **JSON Schema Validation**: Built-in validation for all component definitions
+- **Template System**: Ready-to-use template structure for new vNext projects
+- **Type Safety**: Structured exports with clear APIs for accessing components
 
-### Prerequisites
-- Node.js 16+ 
-- npm or yarn
-- VSCode (recommended for full IDE experience)
+## 📦 Installation
 
-### Installation
-
+### Install as dependency
 ```bash
-# Install dependencies
-npm install
+npm install @burgan-tech/vnext-template
 ```
 
-## 📁 Project Structure
-
-```
-{packageName}/
-├── {domainName}/                    # Domain-specific components
-│   ├── Workflows/                   # Business process workflows
-│   │   ├── workflow-1.json
-│   │   └── workflow-2.json
-│   ├── Functions/                   # Serverless functions
-│   │   ├── function-1.json  
-│   │   └── function-2.json
-│   ├── Views/                       # UI views and components
-│   │   ├── view-1.json
-│   │   └── view-2.json
-│   ├── Extensions/                  # Custom extensions
-│   │   ├── extension-1.json
-│   │   └── extension-2.json
-│   ├── Schemas/                     # Data models and schemas
-│   │   ├── schema-1.json
-│   │   └── schema-2.json
-│   └── Tasks/                       # Background tasks
-│       ├── task-1.json
-│       └── task-2.json
-│   ├── vnext.code-snippets       # Code snippets for components
-├── vnext.config.json             # Project configuration
-├── .cursorrules                     # Cursor AI assistant rules
-├── package.json                     # Dependencies and scripts
-└── README.md                        # This documentation
+### Install as dev dependency
+```bash
+npm install --save-dev @burgan-tech/vnext-template
 ```
 
-## ⚙️ Domain Configuration
+## 🏗️ Project Structure
 
-### vnext.config.json
+```
+vnext-template/
+├── {domainName}/              # Domain-specific components
+│   ├── Extensions/            # Extension definitions
+│   ├── Functions/             # Function definitions
+│   ├── Schemas/              # JSON schema definitions
+│   ├── Tasks/                # Task definitions
+│   ├── Views/                # View components
+│   └── Workflows/            # Workflow definitions
+├── index.js                  # Main entry point
+├── vnext.config.json         # Domain configuration
+└── package.json              # Package metadata
+```
 
-The `vnext.config.json` file contains domain-specific configuration:
+## 📚 Usage
 
-```json
-{
-  "domain": "{domainName}",
-  "version": "1.0.0",
-  "runtimeVersion": "1.0.0",
-  "paths": {
-    "workflows": "{domainName}/Workflows",
-    "functions": "{domainName}/Functions", 
-    "views": "{domainName}/Views",
-    "extensions": "{domainName}/Extensions",
-    "schemas": "{domainName}/Schemas",
-    "tasks": "{domainName}/Tasks"
+### Basic Usage
+
+```javascript
+const vnextTemplate = require('@burgan-tech/vnext-template');
+
+// Get domain configuration
+const config = vnextTemplate.getDomainConfig();
+console.log('Domain config:', config);
+
+// Get all available component types
+const availableTypes = vnextTemplate.getAvailableTypes();
+console.log('Available types:', availableTypes);
+// Output: ['schemas', 'workflows', 'tasks', 'views', 'functions', 'extensions']
+
+// Get domain name
+const domainName = vnextTemplate.getDomainName();
+console.log('Domain name:', domainName);
+```
+
+### Component Access
+
+```javascript
+// Load specific component types
+const schemas = vnextTemplate.getSchemas();
+const workflows = vnextTemplate.getWorkflows();
+const tasks = vnextTemplate.getTasks();
+const views = vnextTemplate.getViews();
+const functions = vnextTemplate.getFunctions();
+const extensions = vnextTemplate.getExtensions();
+
+// Example: Working with schemas
+Object.keys(schemas).forEach(schemaName => {
+  console.log(`Schema: ${schemaName}`, schemas[schemaName]);
+});
+
+// Example: Working with workflows
+Object.keys(workflows).forEach(workflowName => {
+  console.log(`Workflow: ${workflowName}`, workflows[workflowName]);
+});
+```
+
+### Integration Example
+
+```javascript
+const vnext = require('@burgan-tech/vnext-template');
+
+class WorkflowManager {
+  constructor() {
+    this.config = vnext.getDomainConfig();
+    this.schemas = vnext.getSchemas();
+    this.workflows = vnext.getWorkflows();
+  }
+  
+  validateWorkflow(workflowData) {
+    // Use loaded schemas for validation
+    // Implementation depends on your validation library
+  }
+  
+  executeWorkflow(workflowName) {
+    const workflow = this.workflows[workflowName];
+    if (!workflow) {
+      throw new Error(`Workflow ${workflowName} not found`);
+    }
+    // Execute workflow logic
   }
 }
+
+const manager = new WorkflowManager();
 ```
 
-#### Configuration Properties
+## 🔧 API Reference
 
-- **domain**: The business domain name for this project
-- **validation.enabled**: Enable/disable component validation
-- **validation.strict**: Use strict validation rules
-- **validation.rules**: Individual validation rule toggles
-- **paths**: Directory paths for each component type
-- **linting**: File inclusion/exclusion patterns and rules
+### `getDomainConfig()`
+Returns the domain configuration from `vnext.config.json`.
 
-## 🧩 Component Types
+**Returns:** `Object | null` - The configuration object or null if not found
 
-### 1. Workflows
-Business process definitions with states, transitions, and tasks.
+### `getSchemas()`
+Loads all JSON schema files from the Schemas directory.
 
-**Purpose**: Define complex business workflows with multiple states and transitions.
+**Returns:** `Object` - Key-value pairs of schema names and definitions
 
-**Schema**: `workflow-definition.schema.json`
+### `getWorkflows()`
+Loads all workflow definitions from the Workflows directory.
 
-### 2. Functions  
-Serverless function definitions for business logic.
+**Returns:** `Object` - Key-value pairs of workflow names and definitions
 
-**Purpose**: Define stateless functions for data processing and business rules.
+### `getTasks()`
+Loads all task definitions from the Tasks directory.
 
-**Schema**: `function-definition.schema.json`
+**Returns:** `Object` - Key-value pairs of task names and definitions
 
-### 3. Views
-UI component and view definitions.
+### `getViews()`
+Loads all view definitions from the Views directory.
 
-**Purpose**: Define user interface components and their data bindings.
+**Returns:** `Object` - Key-value pairs of view names and definitions
 
-**Schema**: `view-definition.schema.json`
+### `getFunctions()`
+Loads all function definitions from the Functions directory.
 
-### 4. Extensions
-Custom extensions for extending framework capabilities.
+**Returns:** `Object` - Key-value pairs of function names and definitions
 
-**Purpose**: Add custom functionality to the vNext framework.
+### `getExtensions()`
+Loads all extension definitions from the Extensions directory.
 
-**Schema**: `extension-definition.schema.json`
+**Returns:** `Object` - Key-value pairs of extension names and definitions
 
-### 5. Schemas
-Data model and schema definitions.
+### `getAvailableTypes()`
+Returns an array of available component types.
 
-**Purpose**: Define data structures, validation rules, and API contracts.
+**Returns:** `Array<string>` - Available component types
 
-**Schema**: `schema-definition.schema.json`
+### `getDomainName()`
+Returns the name of the domain directory.
 
-### 6. Tasks
-Background task and job definitions.
+**Returns:** `string | null` - Domain directory name or null if not found
 
-**Purpose**: Define scheduled jobs, queued tasks, and background processes.
+## 🏛️ Architecture Principles
 
-**Schema**: `task-definition.schema.json`
+### Domain-Driven Design
+- Each domain is represented as a separate directory
+- Components are organized by type within domains
+- Clear separation between different workflow concerns
 
-## 📏 Best Practices
+### Component Types
 
-### Component Design
-1. **Single Responsibility**: Each component should have one clear purpose
-2. **Consistent Naming**: Follow domain naming conventions strictly
-3. **Version Management**: Use semantic versioning for all components
-4. **Documentation**: Include clear descriptions and examples
-5. **Validation**: Always validate components before committing
+1. **Schemas**: JSON Schema definitions for data validation
+2. **Workflows**: Business process definitions and state machines
+3. **Tasks**: Individual task definitions and configurations
+4. **Views**: User interface and presentation components
+5. **Functions**: Reusable business logic functions
+6. **Extensions**: Plugin and extension definitions
 
-### File Organization
-1. **Domain Grouping**: Keep all domain components together
-2. **Type Separation**: Separate components by type in dedicated folders
-3. **Descriptive Names**: Use meaningful, searchable filenames
-4. **Consistent Structure**: Follow the established JSON structure
+### File Naming Convention
+All component files follow the pattern: `{name}.{version}.json`
 
-### Development Process
-1. **Use Snippets**: Leverage VSCode snippets for consistency
-2. **Validate Early**: Run validation during development
-3. **Lint Regularly**: Use linting to catch issues early
-4. **Test Thoroughly**: Validate components in different scenarios
-5. **Document Changes**: Update documentation when adding features
+Example: `user-registration.1.0.0.json`
 
-### Performance
-1. **Optimize JSON**: Keep JSON files lean and focused
-2. **Batch Operations**: Use batch scripts for multiple component updates
-3. **Watch Mode**: Use file watching for automatic updates
-4. **Caching**: Leverage validation caching for faster development
+## 🛠️ Development
 
-## 📚 Learn More
+### Running Tests
+```bash
+npm test
+```
 
-- [vNext Documentation](https://github.com/burgan-tech/vnext-cli)
-- [vNext CLI](https://www.npmjs.com/package/@vnext/cli)
+### Validation
+```bash
+npm run validate
+```
+
+### Building
+```bash
+npm run build
+```
+
+## 📋 Schema Validation Rules
+
+The template follows strict schema validation rules:
+
+### Instance Base Properties
+- Schema instances MUST include: `key`, `version`, `domain`, `flow`, `flowVersion`
+- Schema instances MUST NOT include: `labels` (labels belong to business logic)
+- Optional fields: `id`, `eTag` (added by platform in production)
+
+### Reference Pattern
+- References use: `domain` + `workflow` + (`id` OR `key`) + optional `version`
+- NO `type` property in references - `workflow` field serves as type
+- Always use local file references: `reference.json#/attributes`
+
+### Standard Lifecycle Pattern
+All lifecycle workflows must have:
+- `draft` (type: "start") - Initial state
+- `active` (type: "normal") - Active state  
+- `passive` (type: "finish") - Final state
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🏢 About Burgan Tech
+
+This package is maintained by the Burgan Tech team as part of our commitment to building scalable, domain-driven workflow solutions.
+
+## 🔗 Links
+
+- [NPM Package](https://www.npmjs.com/package/@burgan-tech/vnext-template)
+- [GitHub Repository](https://github.com/burgan-tech/vnext-template)
+- [Issues](https://github.com/burgan-tech/vnext-template/issues)
+- [Documentation](https://github.com/burgan-tech/vnext-template#readme)
+
+## 📞 Support
+
+For support and questions:
+- Create an issue on [GitHub](https://github.com/burgan-tech/vnext-template/issues)
+- Contact the development team at dev@burgan-tech.com
 
 ---
 
-**Domain**: {domainName} | **Generated by**: [@vnext/cli](https://www.npmjs.com/package/@vnext/cli)
+Made with ❤️ by the Burgan Tech team
