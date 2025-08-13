@@ -43,7 +43,9 @@
     "test.js",
     "validate.js",
     "test-domain-detection.sh",
-    ".cursorrules"
+    ".cursorrules",
+    ".gitignore",
+    ".gitattributes"
   ],
   "engines": {
     "node": ">=16.0.0"
