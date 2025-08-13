@@ -30,12 +30,19 @@ function validate(description, validationFunction) {
 validate('Package.json structure and content', () => {
   const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
   
-  // Required fields
-  const requiredFields = ['name', 'version', 'description', 'main', 'author', 'license', 'repository', 'publishConfig'];
+  // Required fields (publishConfig is optional during publishing process)
+  const requiredFields = ['name', 'version', 'description', 'main', 'author', 'license', 'repository'];
   for (const field of requiredFields) {
     if (!packageJson[field]) {
       throw new Error(`Missing required field: ${field}`);
     }
+  }
+  
+  // PublishConfig is optional during publishing (workflow may remove it temporarily)
+  if (packageJson.publishConfig) {
+    console.log(`  ✓ PublishConfig present`);
+  } else {
+    console.log(`  ⚠ PublishConfig not present (may be removed during publishing)`);
   }
   
   // Scope validation
@@ -53,9 +60,12 @@ validate('Package.json structure and content', () => {
     throw new Error(`Main file ${packageJson.main} does not exist`);
   }
   
-  // PublishConfig validation
-  if (!packageJson.publishConfig.registry || !packageJson.publishConfig.access) {
-    throw new Error('publishConfig must include registry and access');
+  // PublishConfig validation (if present)
+  if (packageJson.publishConfig) {
+    if (!packageJson.publishConfig.registry || !packageJson.publishConfig.access) {
+      throw new Error('publishConfig must include registry and access');
+    }
+    console.log(`  ✓ PublishConfig is valid`);
   }
   
   console.log(`  ✓ Package name: ${packageJson.name}`);
