@@ -1,4 +1,4 @@
-# @burgan-tech/vnext-template
+# {domainName}
 
 A structured template package for vNext workflow components with domain-based architecture. This package provides a foundation for building scalable workflow systems with schemas, tasks, views, functions, and extensions.
 
@@ -17,12 +17,12 @@ A structured template package for vNext workflow components with domain-based ar
 
 ### Install as dependency
 ```bash
-npm install @burgan-tech/vnext-template
+npm install @my-organization/{domainName}
 ```
 
 ### Install as dev dependency
 ```bash
-npm install --save-dev @burgan-tech/vnext-template
+npm install --save-dev @my-organization/{domainName}
 ```
 
 ## 🏗️ Project Structure
@@ -46,7 +46,7 @@ vnext-template/
 ### Basic Usage
 
 ```javascript
-const vnextTemplate = require('@burgan-tech/vnext-template');
+const vnextTemplate = require('@my-organization/{domainName}');
 
 // Get domain configuration
 const config = vnextTemplate.getDomainConfig();
@@ -87,7 +87,7 @@ Object.keys(workflows).forEach(workflowName => {
 ### Integration Example
 
 ```javascript
-const vnext = require('@burgan-tech/vnext-template');
+const vnext = require('my-organization/{domainName}');
 
 class WorkflowManager {
   constructor() {
@@ -176,8 +176,6 @@ Returns the name of the domain directory.
 5. **Functions**: Reusable business logic functions
 6. **Extensions**: Plugin and extension definitions
 
-### File Naming Convention
-All component files follow the pattern: `{name}.{version}.json`
 
 Example: `user-registration.1.0.0.json`
 
@@ -191,11 +189,6 @@ npm test
 ### Validation
 ```bash
 npm run validate
-```
-
-### Building
-```bash
-npm run build
 ```
 
 ## 📋 Schema Validation Rules

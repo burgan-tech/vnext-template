@@ -39,7 +39,13 @@
     "README.md",
     "package.json",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "test.js",
+    "validate.js",
+    "test-domain-detection.sh",
+    ".cursorrules",
+    ".gitignore",
+    ".gitattributes"
   ],
   "engines": {
     "node": ">=16.0.0"
