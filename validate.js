@@ -2,6 +2,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const Ajv = require('ajv');
+const addFormats = require('ajv-formats');
 
 // Validation script for vnext-template package
 console.log('🔍 Running vnext-template validation...');
@@ -202,6 +204,153 @@ validate('JSON files syntax validation', () => {
   }
   
   console.log(`  ✓ Validated ${jsonFileCount} JSON files`);
+  return true;
+});
+
+// Validation 5b: JSON files schema validation using @burgan-tech/vnext-schema
+validate('JSON files schema validation using @burgan-tech/vnext-schema', () => {
+  let vnextSchema;
+  try {
+    vnextSchema = require('@burgan-tech/vnext-schema');
+  } catch (error) {
+    console.log(`  ⚠ @burgan-tech/vnext-schema package not available: ${error.message}`);
+    console.log(`  ⚠ Skipping schema validation (syntax validation still performed)`);
+    return true; // Don't fail if package is not available
+  }
+
+  const vnextTemplate = require('./index.js');
+  const domainName = vnextTemplate.getDomainName();
+  
+  if (!domainName || !fs.existsSync(domainName)) {
+    console.log(`  ⚠ No domain directory found, skipping schema validation`);
+    return true;
+  }
+
+  // Initialize AJV with formats support
+  const ajv = new Ajv({
+    strict: false, // Allow unknown keywords like enumDescriptions
+    allErrors: true, // Collect all errors
+    verbose: true // Include schema path in errors
+  });
+  addFormats(ajv);
+
+  // Map directory names to schema types
+  const directoryToSchemaType = {
+    'Schemas': 'schema',
+    'Workflows': 'workflow',
+    'Tasks': 'task',
+    'Views': 'view',
+    'Functions': 'function',
+    'Extensions': 'extension'
+  };
+
+  // Get available schema types
+  const availableTypes = vnextSchema.getAvailableTypes ? vnextSchema.getAvailableTypes() : [];
+  
+  // Compile validators for each schema type
+  const validators = {};
+  for (const [dirName, schemaType] of Object.entries(directoryToSchemaType)) {
+    if (availableTypes.includes(schemaType)) {
+      try {
+        const schema = vnextSchema.getSchema ? vnextSchema.getSchema(schemaType) : null;
+        if (schema) {
+          validators[dirName] = {
+            validator: ajv.compile(schema),
+            type: schemaType
+          };
+        }
+      } catch (error) {
+        console.log(`  ⚠ Warning: Could not compile validator for ${schemaType}: ${error.message}`);
+      }
+    }
+  }
+
+  if (Object.keys(validators).length === 0) {
+    console.log(`  ⚠ No validators available, skipping schema validation`);
+    return true;
+  }
+
+  let validatedCount = 0;
+  let errorCount = 0;
+  const errors = [];
+
+  // Validate JSON files against schemas
+  const validateJsonAgainstSchema = (dirPath, domainPath) => {
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name);
+      
+      if (entry.isDirectory()) {
+        validateJsonAgainstSchema(fullPath, domainPath);
+      } else if (entry.isFile() && entry.name.endsWith('.json')) {
+        // Determine which schema type to use based on directory path
+        // Check if any of the parent directories match our schema directories
+        let validator = null;
+        let schemaType = null;
+        
+        const relativePath = path.relative(domainPath, path.dirname(fullPath));
+        const pathParts = relativePath.split(path.sep);
+        
+        // Find the first matching directory in the path
+        for (const part of pathParts) {
+          if (validators[part]) {
+            validator = validators[part];
+            schemaType = validator.type;
+            break;
+          }
+        }
+        
+        if (validator) {
+          validatedCount++;
+          try {
+            const jsonContent = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+            const valid = validator.validator(jsonContent);
+            
+            if (!valid) {
+              errorCount++;
+              const validationErrors = validator.validator.errors || [];
+              const errorMessages = validationErrors.map(err => {
+                const errPath = err.instancePath || err.dataPath || '';
+                return `  ${errPath}: ${err.message}${err.params ? ' (' + JSON.stringify(err.params) + ')' : ''}`;
+              }).join('\n');
+              
+              errors.push({
+                file: fullPath,
+                type: schemaType,
+                message: `Schema validation failed for ${schemaType}:\n${errorMessages}`
+              });
+            }
+          } catch (error) {
+            errorCount++;
+            errors.push({
+              file: fullPath,
+              type: schemaType || 'unknown',
+              message: `Error validating file: ${error.message}`
+            });
+          }
+        }
+      }
+    }
+  };
+  
+  validateJsonAgainstSchema(domainName, domainName);
+  
+  if (errorCount > 0) {
+    console.log(`  ❌ Schema validation failed for ${errorCount} file(s):`);
+    errors.forEach(err => {
+      console.log(`\n    File: ${err.file}`);
+      console.log(`    Type: ${err.type}`);
+      console.log(`    ${err.message}`);
+    });
+    throw new Error(`Schema validation failed for ${errorCount} file(s)`);
+  }
+  
+  console.log(`  ✓ Schema validation passed for ${validatedCount} file(s)`);
+  if (validatedCount === 0) {
+    console.log(`  ⚠ No files found to validate against schemas`);
+  }
+  
   return true;
 });
 

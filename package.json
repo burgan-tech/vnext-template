@@ -54,7 +54,7 @@
     "node": ">=16.0.0"
   },
   "dependencies": {
-    "@burgan-tech/vnext-schema": "^0.0.13"
+    "@burgan-tech/vnext-schema": "^0.0.23"
   },
   "devDependencies": {
     "ajv": "^8.12.0",
