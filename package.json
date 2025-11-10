@@ -8,8 +8,14 @@
     "validate": "node validate.js",
     "build": "echo 'Build completed - package is ready'",
     "sync-schema": "node sync-schema-version.js",
-    "postinstall": "npm run sync-schema",
+    "setup": "node setup.js",
+    "postinstall": "node setup.js && npm run sync-schema",
     "prepublishOnly": "npm run sync-schema && npm run validate"
+  },
+  "bin": {
+    "@burgan-tech/vnext-template": "./init.js",
+    "vnext-template": "./init.js",
+    "vnext-setup": "./setup.js"
   },
   "keywords": [
     "vnext",
@@ -36,19 +42,15 @@
   },
   "files": [
     "index.js",
+    "init.js",
+    "setup.js",
     "{domainName}/",
     "vnext.config.json",
     "README.md",
     "package.json",
-    "CHANGELOG.md",
     "LICENSE",
-    "test.js",
     "validate.js",
-    "sync-schema-version.js",
-    "test-domain-detection.sh",
-    ".cursorrules",
-    ".gitignore",
-    ".gitattributes"
+    "sync-schema-version.js"
   ],
   "engines": {
     "node": ">=16.0.0"
