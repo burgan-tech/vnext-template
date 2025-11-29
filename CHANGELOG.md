@@ -8,13 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial project structure and configuration
+- `init.js` - Script for creating new projects via `npx @burgan-tech/vnext-template <domain-name>`
+- `setup.js` - Interactive setup script for replacing `{domainName}` in template files
+- Support for domain name via command-line argument in `npx` command
+- Support for domain name via `DOMAIN_NAME` environment variable
+- Binary commands: `@burgan-tech/vnext-template`, `vnext-template`, and `vnext-setup`
+- Automatic domain name replacement during installation
+- Validation instructions in README
 
 ### Changed
+- Simplified README to focus on installation and usage
+- Updated `package.json` to include bin entries for npx commands
+- Updated `package.json` files array to exclude development-only files (test.js, test-domain-detection.sh, CHANGELOG.md, .cursorrules, .gitignore, .gitattributes)
+- `postinstall` script now runs setup.js automatically
+- Improved package structure for npm publishing
 
 ### Deprecated
 
 ### Removed
+- Development-only files from published package (test.js, test-domain-detection.sh, .cursorrules, .gitignore, .gitattributes)
 
 ### Fixed
 
