@@ -4,24 +4,52 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-// Check if already set up (domain directory exists and is not {domainName})
+// Load configuration from vnext.config.json
+function loadConfig() {
+  try {
+    return JSON.parse(fs.readFileSync('vnext.config.json', 'utf8'));
+  } catch (error) {
+    return null;
+  }
+}
+
+// Get paths configuration with defaults
+function getPathsConfig() {
+  const config = loadConfig();
+  const defaults = {
+    componentsRoot: '{domainName}',
+    schemas: 'Schemas',
+    workflows: 'Workflows',
+    tasks: 'Tasks',
+    views: 'Views',
+    functions: 'Functions',
+    extensions: 'Extensions'
+  };
+  
+  if (config && config.paths) {
+    return { ...defaults, ...config.paths };
+  }
+  return defaults;
+}
+
+// Check if already set up (componentsRoot directory exists with vnext structure)
 function isAlreadySetup() {
-  const entries = fs.readdirSync('.', { withFileTypes: true });
-  for (const entry of entries) {
-    if (entry.isDirectory() && 
-        !entry.name.startsWith('.') && 
-        entry.name !== 'node_modules' &&
-        entry.name !== 'dist' &&
-        entry.name !== '{domainName}') {
-      // Check if it contains typical vnext structure
-      const domainPath = entry.name;
-      if (fs.existsSync(path.join(domainPath, 'Schemas')) ||
-          fs.existsSync(path.join(domainPath, 'Workflows')) ||
-          fs.existsSync(path.join(domainPath, 'Tasks'))) {
-        return true;
-      }
+  const pathsConfig = getPathsConfig();
+  const componentsRoot = pathsConfig.componentsRoot;
+  
+  // Check if componentsRoot directory exists and contains vnext structure
+  if (componentsRoot && fs.existsSync(componentsRoot)) {
+    const schemasPath = path.join(componentsRoot, pathsConfig.schemas);
+    const workflowsPath = path.join(componentsRoot, pathsConfig.workflows);
+    const tasksPath = path.join(componentsRoot, pathsConfig.tasks);
+    
+    if (fs.existsSync(schemasPath) ||
+        fs.existsSync(workflowsPath) ||
+        fs.existsSync(tasksPath)) {
+      return true;
     }
   }
+  
   return false;
 }
 
@@ -120,6 +148,7 @@ function replaceInDirectory(dirPath, domainName, processedFiles = new Set()) {
     if (entry.name === 'node_modules' || 
         entry.name === '.git' || 
         entry.name === 'dist' ||
+        entry.name === '.github' ||
         entry.name.startsWith('.')) {
       continue;
     }
@@ -131,8 +160,7 @@ function replaceInDirectory(dirPath, domainName, processedFiles = new Set()) {
       const ext = path.extname(entry.name).toLowerCase();
       if (['.json', '.js', '.md', '.sh', '.txt', '.yml', '.yaml'].includes(ext) ||
           entry.name === '.gitignore' ||
-          entry.name === '.gitattributes' ||
-          entry.name === '.cursorrules') {
+          entry.name === '.gitattributes') {
         if (!processedFiles.has(relativePath)) {
           if (replaceInFile(fullPath, domainName)) {
             processedFiles.add(relativePath);
@@ -173,22 +201,20 @@ async function setup() {
     return;
   }
 
-  console.log('🚀 vNext Template Setup');
-  console.log('=======================\n');
-
-  // Check if already set up
+  // Check if already set up first
   if (isAlreadySetup()) {
-    console.log('✅ Template is already set up with a domain name');
-    console.log('   Skipping setup. If you want to re-run setup, remove the domain directory first.\n');
     return;
   }
 
-  // Check if {domainName} directory exists
+  // Check if {domainName} directory exists (template not yet configured)
   if (!fs.existsSync('{domainName}')) {
     console.log('⚠️  Template directory {domainName} not found');
     console.log('   This might already be a configured project.\n');
     return;
   }
+
+  console.log('🚀 vNext Template Setup');
+  console.log('=======================\n');
 
   // Get domain name from command line or prompt
   const domainName = await getDomainName();

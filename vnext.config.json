@@ -2,7 +2,7 @@
   "version": "1.0.0",
   "description": "{domainName} Domain Definition Configuration",
   "domain": "{domainName}",
-  "runtimeVersion": "0.0.12",
+  "runtimeVersion": "0.0.21",
   "schemaVersion": "0.0.23",
   "paths": {
     "componentsRoot": "{domainName}",

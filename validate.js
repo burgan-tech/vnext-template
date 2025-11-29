@@ -418,7 +418,8 @@ let schemaValidationStats = {
   filesPassed: 0,
   filesFailed: 0,
   enabled: false,
-  passedFiles: []
+  passedFiles: [],
+  failedFiles: []
 };
 
 function validate(description, validationFunction) {
@@ -548,6 +549,7 @@ validate('vnext.config.json validation', () => {
 validate('Domain directory structure', () => {
   const vnextTemplate = require('./index.js');
   const domainName = vnextTemplate.getDomainName();
+  const pathsConfig = vnextTemplate.getPathsConfig();
   
   if (!domainName) {
     console.log(`  ⚠ No domain directory found (template will be empty)`);
@@ -558,8 +560,15 @@ validate('Domain directory structure', () => {
     throw new Error(`Domain directory ${domainName} does not exist`);
   }
   
-  // Check for vnext structure directories
-  const vnextDirs = ['Schemas', 'Workflows', 'Tasks', 'Views', 'Functions', 'Extensions'];
+  // Check for vnext structure directories using paths config
+  const vnextDirs = [
+    pathsConfig.schemas,
+    pathsConfig.workflows,
+    pathsConfig.tasks,
+    pathsConfig.views,
+    pathsConfig.functions,
+    pathsConfig.extensions
+  ];
   const existingDirs = vnextDirs.filter(dir => fs.existsSync(path.join(domainName, dir)));
   
   if (existingDirs.length === 0) {
@@ -584,6 +593,11 @@ validate('JSON files syntax validation', () => {
       const entries = fs.readdirSync(dirPath, { withFileTypes: true });
       
       for (const entry of entries) {
+        // Skip .meta directory
+        if (entry.name === '.meta') {
+          continue;
+        }
+        
         const fullPath = path.join(dirPath, entry.name);
         
         if (entry.isDirectory()) {
@@ -631,6 +645,7 @@ validate('JSON files schema validation using @burgan-tech/vnext-schema', () => {
 
   const vnextTemplate = require('./index.js');
   const domainName = vnextTemplate.getDomainName();
+  const pathsConfig = vnextTemplate.getPathsConfig();
   
   if (!domainName || !fs.existsSync(domainName)) {
     console.log(`  ⚠ No domain directory found, skipping schema validation`);
@@ -645,14 +660,14 @@ validate('JSON files schema validation using @burgan-tech/vnext-schema', () => {
   });
   addFormats(ajv);
 
-  // Map directory names to schema types
+  // Map directory names to schema types dynamically from paths config
   const directoryToSchemaType = {
-    'Schemas': 'schema',
-    'Workflows': 'workflow',
-    'Tasks': 'task',
-    'Views': 'view',
-    'Functions': 'function',
-    'Extensions': 'extension'
+    [pathsConfig.schemas]: 'schema',
+    [pathsConfig.workflows]: 'workflow',
+    [pathsConfig.tasks]: 'task',
+    [pathsConfig.views]: 'view',
+    [pathsConfig.functions]: 'function',
+    [pathsConfig.extensions]: 'extension'
   };
 
   // Get available schema types
@@ -691,6 +706,11 @@ validate('JSON files schema validation using @burgan-tech/vnext-schema', () => {
     const entries = fs.readdirSync(dirPath, { withFileTypes: true });
     
     for (const entry of entries) {
+      // Skip .meta directory
+      if (entry.name === '.meta') {
+        continue;
+      }
+      
       const fullPath = path.join(dirPath, entry.name);
       
       if (entry.isDirectory()) {
@@ -781,6 +801,7 @@ validate('JSON files schema validation using @burgan-tech/vnext-schema', () => {
   schemaValidationStats.filesPassed = passedFiles.length;
   schemaValidationStats.filesFailed = errorCount;
   schemaValidationStats.passedFiles = passedFiles;
+  schemaValidationStats.failedFiles = errors;
   
   // Display failed files if any
   if (errorCount > 0) {
@@ -823,17 +844,26 @@ validate('Module functionality test', () => {
   const vnextTemplate = require('./index.js');
   
   // Test basic functionality
-  const config = vnextTemplate.getDomainConfig();
+  const pathsConfig = vnextTemplate.getPathsConfig();
   const availableTypes = vnextTemplate.getAvailableTypes();
   
   if (!Array.isArray(availableTypes)) {
     throw new Error('getAvailableTypes must return an array');
   }
   
-  const expectedTypes = ['schemas', 'workflows', 'tasks', 'views', 'functions', 'extensions'];
-  for (const type of expectedTypes) {
-    if (!availableTypes.includes(type)) {
-      throw new Error(`Missing expected type: ${type}`);
+  // Verify availableTypes contains expected directory names from paths config
+  const expectedDirs = [
+    pathsConfig.schemas,
+    pathsConfig.workflows,
+    pathsConfig.tasks,
+    pathsConfig.views,
+    pathsConfig.functions,
+    pathsConfig.extensions
+  ];
+  
+  for (const dir of expectedDirs) {
+    if (!availableTypes.includes(dir)) {
+      throw new Error(`Missing expected directory in availableTypes: ${dir}`);
     }
   }
   
@@ -856,6 +886,7 @@ validate('Module functionality test', () => {
   
   console.log(`  ✓ All component getters working`);
   console.log(`  ✓ Available types: ${availableTypes.join(', ')}`);
+  console.log(`  ✓ Paths config loaded from vnext.config.json`);
   
   return true;
 });
@@ -903,18 +934,50 @@ validate('Semantic versioning compliance', () => {
 });
 
 // Print validation results
-console.log('\n📊 Validation Results:');
-console.log(`✅ Passed: ${validationsPassed}`);
-console.log(`❌ Failed: ${validationsFailed}`);
-console.log(`📈 Total: ${validationsPassed + validationsFailed}`);
+console.log('\n' + '═'.repeat(60));
+console.log('📊 Validation Results:');
+console.log('═'.repeat(60));
+console.log(`   ✅ Passed: ${colorize(validationsPassed, 'green')}`);
+console.log(`   ❌ Failed: ${colorize(validationsFailed, 'red')}`);
+console.log(`   📈 Total:  ${validationsPassed + validationsFailed}`);
 
 // Print schema validation statistics if enabled
 if (schemaValidationStats.enabled) {
-  console.log('\n📋 Schema Validation Statistics:');
+  console.log('\n' + '─'.repeat(60));
+  console.log('📋 Schema Validation Statistics:');
+  console.log('─'.repeat(60));
   console.log(`   Files validated: ${colorize(schemaValidationStats.filesValidated, 'cyan')}`);
   console.log(`   ${colorize('✓ Passed:', 'green')} ${colorize(schemaValidationStats.filesPassed, 'green')}`);
   console.log(`   ${colorize('✗ Failed:', 'red')} ${colorize(schemaValidationStats.filesFailed, 'red')}`);
+  
+  // Print failed files summary if any
+  if (schemaValidationStats.failedFiles.length > 0) {
+    console.log('\n' + '─'.repeat(60));
+    console.log(colorize('❌ Failed Files Summary:', 'red'));
+    console.log('─'.repeat(60));
+    
+    schemaValidationStats.failedFiles.forEach((err, index) => {
+      const fileName = path.basename(err.file);
+      const relativePath = err.file;
+      
+      if (index > 0) {
+        console.log(''); // Line break between files
+      }
+      
+      console.log(`   ${colorize((index + 1) + '.', 'bright')} ${colorize(fileName, 'yellow')}`);
+      console.log(`      Path: ${colorize(relativePath, 'dim')}`);
+      console.log(`      Type: ${colorize(err.type, 'magenta')}`);
+      
+      if (err.location) {
+        console.log(`      Line: ${colorize(err.location.line, 'cyan')}${err.location.column ? `, Column: ${colorize(err.location.column, 'cyan')}` : ''}`);
+      }
+    });
+    
+    console.log('─'.repeat(60));
+  }
 }
+
+console.log('═'.repeat(60));
 
 if (validationsFailed > 0) {
   console.log('\n❌ Validation failed! Please fix the issues above.');

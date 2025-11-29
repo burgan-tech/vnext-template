@@ -48,6 +48,26 @@ function replaceInContent(content, domainName) {
   return content.replace(/\{domainName\}/g, domainName);
 }
 
+// Copy directory contents without creating the directory itself
+function copyDirectoryContents(src, dest, domainName) {
+  if (!fs.existsSync(src)) {
+    return;
+  }
+  
+  // Create destination directory if it doesn't exist
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+  
+  // Copy all contents
+  const entries = fs.readdirSync(src);
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry);
+    const destPath = path.join(dest, entry);
+    copyAndReplace(srcPath, destPath, domainName, ['node_modules', '.git', 'dist']);
+  }
+}
+
 // Copy directory recursively and replace {domainName}
 function copyAndReplace(src, dest, domainName, skipDirs = []) {
   if (!fs.existsSync(src)) {
@@ -111,17 +131,25 @@ function init() {
     process.exit(1);
   }
   
-  const targetDir = path.resolve(process.cwd(), domainName);
+  // Project will be created in current directory, not in a subdirectory
+  const targetDir = process.cwd();
+  const domainDir = path.join(targetDir, domainName);
   
-  // Check if target directory already exists
-  if (fs.existsSync(targetDir)) {
-    console.error(`❌ Error: Directory "${domainName}" already exists`);
+  // Check if domain directory already exists
+  if (fs.existsSync(domainDir)) {
+    console.error(`❌ Error: Domain directory "${domainName}" already exists`);
+    process.exit(1);
+  }
+  
+  // Check if project files already exist
+  if (fs.existsSync(path.join(targetDir, 'package.json'))) {
+    console.error(`❌ Error: package.json already exists in current directory`);
     process.exit(1);
   }
   
   console.log('🚀 vNext Template Initialization');
   console.log('=================================\n');
-  console.log(`📝 Creating project: ${domainName}\n`);
+  console.log(`📝 Initializing project with domain: ${domainName}\n`);
   
   // Get package directory
   const packageDir = getPackageDir();
@@ -135,8 +163,8 @@ function init() {
     process.exit(1);
   }
   
-  // Create target directory
-  fs.mkdirSync(targetDir, { recursive: true });
+  // Create domain directory (targetDir is current directory, no need to create it)
+  fs.mkdirSync(domainDir, { recursive: true });
   
   // Files and directories to copy
   const itemsToCopy = [
@@ -149,11 +177,12 @@ function init() {
     'LICENSE',
     'test.js',
     'validate.js',
+    'build.js',
+    'setup.js',
     'sync-schema-version.js',
     'test-domain-detection.sh',
     '.gitignore',
-    '.gitattributes',
-    '.cursorrules'
+    '.gitattributes'
   ];
   
   console.log('📦 Copying template files...');
@@ -161,37 +190,55 @@ function init() {
   // Copy each item
   for (const item of itemsToCopy) {
     const srcPath = path.join(packageDir, item);
-    const destPath = path.join(targetDir, item === '{domainName}' ? domainName : item);
     
-    if (fs.existsSync(srcPath)) {
-      if (fs.statSync(srcPath).isDirectory()) {
-        copyAndReplace(srcPath, destPath, domainName, ['node_modules', '.git', 'dist']);
-      } else {
-        const content = fs.readFileSync(srcPath, 'utf8');
-        const replaced = replaceInContent(content, domainName);
-        fs.writeFileSync(destPath, replaced, 'utf8');
+    if (item === '{domainName}') {
+      // Copy {domainName} contents to domainDir (test/core/)
+      if (fs.existsSync(srcPath)) {
+        const entries = fs.readdirSync(srcPath);
+        for (const entry of entries) {
+          const srcEntryPath = path.join(srcPath, entry);
+          const destEntryPath = path.join(domainDir, entry);
+          
+          // Use a custom copy function to avoid nested directory creation
+          if (fs.statSync(srcEntryPath).isDirectory()) {
+            copyDirectoryContents(srcEntryPath, destEntryPath, domainName);
+          } else {
+            copyAndReplace(srcEntryPath, destEntryPath, domainName, ['node_modules', '.git', 'dist', '.github']);
+          }
+        }
+      }
+    } else {
+      const destPath = path.join(targetDir, item);
+      if (fs.existsSync(srcPath)) {
+        if (fs.statSync(srcPath).isDirectory()) {
+          copyAndReplace(srcPath, destPath, domainName, ['node_modules', '.git', 'dist', '.github']);
+        } else {
+          const content = fs.readFileSync(srcPath, 'utf8');
+          const replaced = replaceInContent(content, domainName);
+          fs.writeFileSync(destPath, replaced, 'utf8');
+        }
       }
     }
   }
   
-  console.log(`  ✓ Created project directory: ${domainName}/`);
-  console.log(`  ✓ Replaced {domainName} in all files`);
-  console.log(`  ✓ Renamed {domainName}/ to ${domainName}/\n`);
+  console.log(`  ✓ Created domain directory: ${domainName}/`);
+  console.log(`  ✓ Replaced {domainName} with ${domainName} in all files`);
+  console.log(`  ✓ Copied project files to current directory\n`);
   
   // Install dependencies
   console.log('📥 Installing dependencies...');
   try {
-    process.chdir(targetDir);
+    // targetDir is already current directory, no need to chdir
     execSync('npm install', { stdio: 'inherit' });
     console.log('\n✅ Project initialized successfully!\n');
     console.log(`📁 Project location: ${targetDir}`);
+    console.log(`📁 Domain directory: ${domainDir}`);
     console.log(`\n🚀 Next steps:`);
-    console.log(`   cd ${domainName}`);
     console.log(`   npm run validate`);
     console.log(`   npm test\n`);
   } catch (error) {
     console.error('\n⚠️  Warning: Failed to install dependencies automatically');
-    console.error(`   Please run: cd ${domainName} && npm install\n`);
+    console.error(`   Please run: npm install\n`);
     process.exit(1);
   }
 }
