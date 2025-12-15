@@ -1,4 +1,4 @@
-# core
+# {domainName}
 
 A structured template package for vNext workflow components with domain-based architecture.
 
@@ -16,7 +16,7 @@ npx @burgan-tech/vnext-template <domain-name>
 npx @burgan-tech/vnext-template user-management
 ```
 
-This will create a new directory with your domain name, copy all template files, replace `core` instances, and install dependencies automatically.
+This will create a new directory with your domain name, copy all template files, replace `{domainName}` instances, and install dependencies automatically.
 
 ### Install specific version
 
