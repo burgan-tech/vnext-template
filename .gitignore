@@ -249,9 +249,9 @@ access.log
 
 # Package manager lock files (keep only one)
 # Uncomment the one you're NOT using:
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # Local development overrides
 local.config.json

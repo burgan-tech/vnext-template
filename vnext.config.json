@@ -2,7 +2,8 @@
   "version": "1.0.0",
   "description": "{domainName} Domain Definition Configuration",
   "domain": "{domainName}",
-  "runtimeVersion": "0.0.1-rc.2",
+  "runtimeVersion": "0.0.21",
+  "schemaVersion": "0.0.23",
   "paths": {
     "componentsRoot": "{domainName}",
     "tasks": "Tasks",
@@ -13,16 +14,9 @@
     "schemas": "Schemas"
   },
   "exports": {
-    "functions": [
-      "calculate-risk-score.1.0.0.json",
-      "validate-user-data.1.1.0.json"
-    ],
-    "workflows": [
-      "sys-flows.1.0.0.json"
-    ],
-    "tasks": [
-      "task-invalidate-cache.1.0.0.json"
-    ],
+    "functions": [],
+    "workflows": [],
+    "tasks": [],
     "views": [],
     "schemas": [],
     "extensions": [],
