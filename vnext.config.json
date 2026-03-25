@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "description": "{domainName} Domain Definition Configuration",
   "domain": "{domainName}",
-  "runtimeVersion": "0.0.21",
-  "schemaVersion": "0.0.23",
+  "runtimeVersion": "0.0.42",
+  "schemaVersion": "0.0.38",
   "paths": {
     "componentsRoot": "{domainName}",
     "tasks": "Tasks",
