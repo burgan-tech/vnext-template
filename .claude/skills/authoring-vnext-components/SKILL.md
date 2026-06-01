@@ -42,6 +42,32 @@ node_modules/@burgan-tech/vnext-schema/schemas/<schema-file>.json
 If `node_modules` is absent, run `npm install` first, or read the schema via
 `npm pack @burgan-tech/vnext-schema && tar -xzf *.tgz`.
 
+## Knowledge access — fetch docs only when needed
+
+Resolve questions in this order; **stop at the first source that answers it**:
+
+1. **This skill + the pinned local schema + existing components.** The
+   `node_modules/@burgan-tech/vnext-schema/schemas/*.json` are the **source of truth for
+   what `npm run validate` enforces** — always trust them over prose docs when they
+   disagree (schema versions drift).
+2. **Context7 MCP** (semantic, low token) — only if the above is insufficient. Query the
+   docs directly by library ID, no resolve step needed:
+   - `/burgan-tech/vnext-docs` — platform/component documentation
+   - `/burgan-tech/vnext-example` — a fully built reference domain
+   (Context7 may be rate-limited or absent in headless/CI runs — fall back to WebFetch.)
+3. **WebFetch** deterministic doc URLs when you know the page:
+   - `https://burgan-tech.github.io/vnext-docs/docs/components/{workflow|view|schema|extension|mappings|interfaces}`
+   - `https://burgan-tech.github.io/vnext-docs/docs/components/tasks/{http|script|trigger|get-instances|notification|dapr-service|dapr-pubsub|dapr-binding|dapr-http-endpoint|soap}`
+   - `https://burgan-tech.github.io/vnext-docs/docs/components/functions/{built-in|custom}`
+   - `https://burgan-tech.github.io/vnext-docs/docs/how-to/view-consept/{tasarimci-rehberi|view-yapisi|schema-tanimi|data-akisi}`
+   - `https://burgan-tech.github.io/vnext-docs/docs/api-reference/rest-api`
+   - `https://burgan-tech.github.io/vnext-docs/sitemap.xml` (full URL list)
+
+**Lazy-load rule:** do **not** re-fetch a page/topic already retrieved earlier in this
+conversation — reuse what's in context. Only fetch when the answer isn't already known
+from this skill, the schema files, or an earlier fetch this chat. A docs claim that
+contradicts the pinned schema does not win — the schema does (note the discrepancy).
+
 ## Common envelope (every component)
 
 All component types share the core envelope from `core-schema.schema.json`.
