@@ -33,7 +33,7 @@ function loadConfig() {
 function getPathsConfig() {
   const config = loadConfig();
   const defaults = {
-    componentsRoot: '{domainName}',
+    componentsRoot: '{{DOMAIN_NAME}}',
     schemas: 'Schemas',
     workflows: 'Workflows',
     tasks: 'Tasks',

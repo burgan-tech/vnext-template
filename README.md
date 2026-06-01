@@ -1,4 +1,4 @@
-# {domainName}
+# {{DOMAIN_NAME}}
 
 A structured template package for vNext workflow components with domain-based architecture.
 
@@ -16,7 +16,7 @@ npx @burgan-tech/vnext-template <domain-name>
 npx @burgan-tech/vnext-template user-management
 ```
 
-This will create a new directory with your domain name, copy all template files, replace `{domainName}` instances, and install dependencies automatically.
+This will create a new directory with your domain name, copy all template files, replace `{{DOMAIN_NAME}}` instances, and install dependencies automatically.
 
 ### Install specific version
 
@@ -282,7 +282,7 @@ This template ships with [Claude Code](https://claude.com/claude-code) assets un
 | `/validate` | Run `npm run validate` and summarize failures (file, JSON pointer, violated rule). |
 | `/build [runtime\|reference] [flags]` | Build the domain package via `build.js`. |
 | `/new-component <type> <key> [desc]` | Scaffold a schema-valid component into the correct folder, then validate. |
-| `/new-domain <domain-name>` | Replace `{domainName}` across the template, sync schema, and validate. |
+| `/new-domain <domain-name>` | Replace `{{DOMAIN_NAME}}` across the template, sync schema, and validate. |
 
 ### Agents
 

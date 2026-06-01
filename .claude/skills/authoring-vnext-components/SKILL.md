@@ -18,7 +18,7 @@ component files so they pass `npm run validate` and build cleanly.
 
 ## Project layout
 
-Components live under the domain directory (the placeholder `{domainName}/` in the
+Components live under the domain directory (the placeholder `{{DOMAIN_NAME}}/` in the
 template, or the real domain name once `npm run setup <name>` has run). Subfolders
 map 1:1 to component types via `paths` in [vnext.config.json](vnext.config.json):
 

@@ -49,7 +49,7 @@ jobs:
           args: >
             -Dsonar.projectKey=burgan-tech_vnext-template
             -Dsonar.organization=burgan-tech
-            -Dsonar.sources={domainName}/,index.js,test.js,validate.js
+            -Dsonar.sources={{DOMAIN_NAME}}/,index.js,test.js,validate.js
             -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/.gitkeep
             -Dsonar.javascript.file.suffixes=.js,.ts,.csx
             -Dsonar.coverage.exclusions=**/*.csx,**/test*.js

@@ -47,7 +47,7 @@
     "init.js",
     "setup.js",
     "build.js",
-    "{domainName}/",
+    "{{DOMAIN_NAME}}/",
     "vnext.config.json",
     "README.md",
     "package.json",

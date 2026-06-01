@@ -146,8 +146,8 @@ jobs:
           echo "This might be a template repository - checking for template structure..."
           
           # Check if we have template structure
-          if [ -d "{domainName}" ]; then
-            DOMAIN_DIR="{domainName}"
+          if [ -d "{{DOMAIN_NAME}}" ]; then
+            DOMAIN_DIR="{{DOMAIN_NAME}}"
             echo "✅ Found template domain directory: $DOMAIN_DIR"
           else
             echo "❌ No domain directory or template found"

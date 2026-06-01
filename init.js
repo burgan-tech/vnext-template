@@ -12,7 +12,7 @@ function getPackageDir() {
   const scriptDir = path.dirname(path.resolve(scriptPath));
   
   // Check if template files exist in the script directory
-  const templateDir = path.join(scriptDir, '{domainName}');
+  const templateDir = path.join(scriptDir, '{{DOMAIN_NAME}}');
   if (fs.existsSync(templateDir)) {
     return scriptDir;
   }
@@ -21,7 +21,7 @@ function getPackageDir() {
   // This handles cases where npx creates a temporary directory
   const cwd = process.cwd();
   const nodeModulesPath = path.join(cwd, 'node_modules', '@burgan-tech', 'vnext-template');
-  if (fs.existsSync(path.join(nodeModulesPath, '{domainName}'))) {
+  if (fs.existsSync(path.join(nodeModulesPath, '{{DOMAIN_NAME}}'))) {
     return nodeModulesPath;
   }
   
@@ -43,7 +43,7 @@ function validateDomainName(domainName) {
   return true;
 }
 
-// Replace {domainName} in file content
+// Replace {{DOMAIN_NAME}} in file content
 function replaceInContent(content, domainName) {
   return content.replace(/\{domainName\}/g, domainName);
 }
@@ -68,7 +68,7 @@ function copyDirectoryContents(src, dest, domainName) {
   }
 }
 
-// Copy directory recursively and replace {domainName}
+// Copy directory recursively and replace {{DOMAIN_NAME}}
 function copyAndReplace(src, dest, domainName, skipDirs = []) {
   if (!fs.existsSync(src)) {
     return;
@@ -155,7 +155,7 @@ function init() {
   const packageDir = getPackageDir();
   
   // Verify template directory exists
-  const templateDir = path.join(packageDir, '{domainName}');
+  const templateDir = path.join(packageDir, '{{DOMAIN_NAME}}');
   if (!fs.existsSync(templateDir)) {
     console.error(`❌ Error: Template directory not found in package`);
     console.error(`   Expected: ${templateDir}`);
@@ -168,7 +168,7 @@ function init() {
   
   // Files and directories to copy
   const itemsToCopy = [
-    '{domainName}',
+    '{{DOMAIN_NAME}}',
     'vnext.config.json',
     'package.json',
     'index.js',
@@ -191,8 +191,8 @@ function init() {
   for (const item of itemsToCopy) {
     const srcPath = path.join(packageDir, item);
     
-    if (item === '{domainName}') {
-      // Copy {domainName} contents to domainDir (test/core/)
+    if (item === '{{DOMAIN_NAME}}') {
+      // Copy {{DOMAIN_NAME}} contents to domainDir (test/core/)
       if (fs.existsSync(srcPath)) {
         const entries = fs.readdirSync(srcPath);
         for (const entry of entries) {
@@ -222,7 +222,7 @@ function init() {
   }
   
   console.log(`  ✓ Created domain directory: ${domainName}/`);
-  console.log(`  ✓ Replaced {domainName} with ${domainName} in all files`);
+  console.log(`  ✓ Replaced {{DOMAIN_NAME}} with ${domainName} in all files`);
   console.log(`  ✓ Copied project files to current directory\n`);
   
   // Install dependencies

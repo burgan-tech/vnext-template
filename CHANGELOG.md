@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `init.js` - Script for creating new projects via `npx @burgan-tech/vnext-template <domain-name>`
-- `setup.js` - Interactive setup script for replacing `{domainName}` in template files
+- `setup.js` - Interactive setup script for replacing `{{DOMAIN_NAME}}` in template files
 - Support for domain name via command-line argument in `npx` command
 - Support for domain name via `DOMAIN_NAME` environment variable
 - Binary commands: `@burgan-tech/vnext-template`, `vnext-template`, and `vnext-setup`
@@ -79,7 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Core module (`index.js`)
 - Test suite (`test.js`)
 - Validation script (`validate.js`)
-- Domain template structure (`{domainName}/`)
+- Domain template structure (`{{DOMAIN_NAME}}/`)
 - Configuration files (`package.json`, `vnext.config.json`)
 - Documentation (`README.md`, `CHANGELOG.md`)
 - CI/CD workflow (`.github/workflows/build-and-publish.yml`)

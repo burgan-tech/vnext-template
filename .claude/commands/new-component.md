@@ -20,14 +20,14 @@ Parse `$ARGUMENTS` as: `<type> <key> [description]`, where `<type>` is one of
 
 **Precondition — the project domain must be initialized.** Before doing anything else,
 read `domain` from [vnext.config.json](vnext.config.json). If it is still the template
-placeholder `{domainName}` (or the `{domainName}/` folder still exists), the project is
+placeholder `{{DOMAIN_NAME}}` (or the `{{DOMAIN_NAME}}/` folder still exists), the project is
 not yet initialized:
 - Ask me (plain text) for the domain name (kebab-case, e.g. `payments`, `lending`).
 - Initialize it. `setup.js`/`npm run setup <name>` short-circuits once the template
-  folders exist, so do it directly: replace `{domainName}` → `<name>` in
+  folders exist, so do it directly: replace `{{DOMAIN_NAME}}` → `<name>` in
   `vnext.config.json` (`domain`, `componentsRoot`, description, exports keywords) and in
-  `package.json` (the `files` entry), then rename the `{domainName}/` folder and
-  `{domainName}.link.json` to `<name>`. Confirm `npm run validate` is green before
+  `package.json` (the `files` entry), then rename the `{{DOMAIN_NAME}}/` folder and
+  `{{DOMAIN_NAME}}.link.json` to `<name>`. Confirm `npm run validate` is green before
   scaffolding.
 
 **Do not scaffold a generic minimal skeleton.** A component is only useful once its

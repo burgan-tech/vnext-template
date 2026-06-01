@@ -17,7 +17,7 @@ function loadConfig() {
 function getPathsConfig() {
   const config = loadConfig();
   const defaults = {
-    componentsRoot: '{domainName}',
+    componentsRoot: '{{DOMAIN_NAME}}',
     schemas: 'Schemas',
     workflows: 'Workflows',
     tasks: 'Tasks',
@@ -114,7 +114,7 @@ async function getDomainName() {
   return await promptDomainName();
 }
 
-// Replace {domainName} in a file
+// Replace {{DOMAIN_NAME}} in a file
 function replaceInFile(filePath, domainName) {
   try {
     let content = fs.readFileSync(filePath, 'utf8');
@@ -132,7 +132,7 @@ function replaceInFile(filePath, domainName) {
   }
 }
 
-// Replace {domainName} in all files recursively
+// Replace {{DOMAIN_NAME}} in all files recursively
 function replaceInDirectory(dirPath, domainName, processedFiles = new Set()) {
   if (!fs.existsSync(dirPath)) {
     return;
@@ -171,9 +171,9 @@ function replaceInDirectory(dirPath, domainName, processedFiles = new Set()) {
   }
 }
 
-// Rename {domainName} directory
+// Rename {{DOMAIN_NAME}} directory
 function renameDomainDirectory(domainName) {
-  const templateDir = '{domainName}';
+  const templateDir = '{{DOMAIN_NAME}}';
   const targetDir = domainName;
   
   if (fs.existsSync(templateDir)) {
@@ -206,9 +206,9 @@ async function setup() {
     return;
   }
 
-  // Check if {domainName} directory exists (template not yet configured)
-  if (!fs.existsSync('{domainName}')) {
-    console.log('⚠️  Template directory {domainName} not found');
+  // Check if {{DOMAIN_NAME}} directory exists (template not yet configured)
+  if (!fs.existsSync('{{DOMAIN_NAME}}')) {
+    console.log('⚠️  Template directory {{DOMAIN_NAME}} not found');
     console.log('   This might already be a configured project.\n');
     return;
   }
@@ -221,7 +221,7 @@ async function setup() {
   console.log(`\n📝 Setting up domain: ${domainName}\n`);
 
   // Replace in all files
-  console.log('🔄 Replacing {domainName} in files...');
+  console.log('🔄 Replacing {{DOMAIN_NAME}} in files...');
   const processedFiles = new Set();
   replaceInDirectory('.', domainName, processedFiles);
   console.log(`  ✓ Processed ${processedFiles.size} file(s)`);
