@@ -264,6 +264,40 @@ dist/
 | `npm run sync-schema` | Sync schema version from dependencies |
 | `npm test` | Run tests |
 
+## 🤖 Claude Code integration
+
+This template ships with [Claude Code](https://claude.com/claude-code) assets under
+`.claude/` to help author and validate vNext components.
+
+### Skill
+
+| Skill | Purpose |
+|-------|---------|
+| `authoring-vnext-components` | Knows the component model — folder→`flow`→schema mapping, the common envelope (`key`/`version`/`domain`/`flow`/`flowVersion`/`tags`/`attributes`), per-type `attributes`, and the validate→fix loop. Used automatically when adding or fixing component JSON. |
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `/validate` | Run `npm run validate` and summarize failures (file, JSON pointer, violated rule). |
+| `/build [runtime\|reference] [flags]` | Build the domain package via `build.js`. |
+| `/new-component <type> <key> [desc]` | Scaffold a schema-valid component into the correct folder, then validate. |
+| `/new-domain <domain-name>` | Replace `{domainName}` across the template, sync schema, and validate. |
+
+### Agents
+
+A role-based pipeline for larger changes:
+
+| Agent | Role |
+|-------|------|
+| `analyst` | Scopes a request into components and acceptance criteria. |
+| `architect` | Designs file placement, workflow states/transitions, references, exports. |
+| `component-author` | Writes the schema-valid component JSON. |
+| `validator` | Runs `validate`/`test`/builds and checks references. |
+| `reviewer` | PR-check on schema compliance, conventions, and reference integrity. |
+| `security-reviewer` | Secrets, allowed hosts, export visibility, task/function scope. |
+| `doc-writer` | Updates README and CHANGELOG. |
+
 ## 📄 License
 
 MIT
