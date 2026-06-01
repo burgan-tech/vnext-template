@@ -110,21 +110,56 @@ Confirm the exact shape against the schema each time; this is the gist:
 - **schema** — required `type` (enum `workflow`/`task`/`function`/`view`/`schema`/
   `extension`/`headers`) and `schema`; optional `labels`.
 
-## C# mapping & rule files (`.csx`)
+## C# scripts (`.csx`) — the `scriptCode` shape
 
-Workflows transform data and evaluate conditions with C# scripts kept in a `src/`
-folder next to the workflow JSON. They are referenced from transitions, tasks, and
-`onExecutionTasks` via a `mapping` object:
+Workflows transform data, evaluate conditions, and compute schedules with C# scripts
+kept in a `src/` folder next to the workflow JSON. Every script reference (`mapping`,
+`rule`, `timer`) uses the same **`scriptCode`** object:
 
 ```json
-"mapping": { "location": "./src/CreateBankAccountMapping.csx", "code": "<base64>", "encoding": "base64" }
+{ "type": "L", "location": "./src/CreateBankAccountMapping.csx", "code": "<base64>", "encoding": "B64" }
 ```
 
+- `type`: `"L"` Local (default) or `"G"` Global. `location`: path to the `.csx`.
+  `encoding`: `"B64"` (default) or `"NAT"`. `code`: the encoded script body.
+- **Validation rule (verified):** if `type` is `"L"` *or set explicitly*, `code` is
+  **required**. If you **omit `type`**, a `location`-only object validates (`code` may be
+  empty). So a freshly hand-authored script is `{ "location": "./src/X.csx" }` — valid,
+  but with no runnable code yet.
 - **Never hand-edit `code` / manually base64-encode.** The vNext VS Code extension
-  auto-encodes the `.csx` into `code` on save. Author the `.csx`; leave `code` to the tool.
-- Mappings implement `IMapping` (`InputHandler`/`OutputHandler` returning `ScriptResponse`);
-  rules implement the condition interface and return a boolean for auto-transition `rule`s.
-- File names kebab/Pascal per existing convention; **class names are PascalCase**.
+  encodes the `.csx` into `code` on save. Author the `.csx`; leave `code` to the tool.
+  This is why scaffolded `mapping`/`rule`/`timer` objects look "empty" — the logic lives
+  in the `.csx`; `code` fills in on first save in the extension.
+- Interfaces: mappings implement `IMapping` (`InputHandler`/`OutputHandler` →
+  `ScriptResponse`); auto-transition rules implement `IConditionMapping`
+  (`Handler` → `bool`); scheduled-transition timers implement `ITimerMapping`
+  (`Handler` → `TimerSchedule`). **Class names are PascalCase.**
+
+## Transitions: triggers, rules, and timers
+
+A transition's `triggerType` decides what carries its logic (enum, verified):
+
+| `triggerType` | Meaning | Logic field | Carried by |
+|---------------|---------|-------------|-----------|
+| `0` | Manual (user fires it) | — (may have a `view`) | user action |
+| `1` | Automatic (rule-evaluated) | `rule` | a `.csx` `IConditionMapping` → `bool` |
+| `2` | Scheduled (timer) | `timer` | a `.csx` `ITimerMapping` → `TimerSchedule` |
+| `3` | Event (external signal) | — | external event |
+
+- **There is no cron string.** A scheduled transition's fire-time is **computed in C#**:
+  the `timer` `.csx` returns `TimerSchedule.FromDateTime(...)` (e.g. derived from an
+  instance field like `scheduledDate`, with a fallback). The schedule is *not* a JSON
+  field on the transition.
+- **Auto transitions** must come in complementary, mutually-exclusive `rule` pairs (or a
+  single always-true rule). `triggerKind: 10` ("default auto") makes the `rule` optional.
+- **`rule`/`timer` are `scriptCode`** (see above) — so `{ "location": "./src/X.csx" }`
+  validates and the extension fills `code` later. `triggerType` 1/2 transitions must have
+  `view: null` (the runtime fires them without user interaction).
+- **Don't confuse with timeouts.** A *transition* `timer` is a `scriptCode` (`.csx`). A
+  **timeout** (`errorBoundary`/state `timeout`) uses a different `timerConfig` shape —
+  a declarative `{ "reset": "None", "duration": "PT30M" }` (ISO 8601 duration). The public
+  docs show the `{reset,duration}` form for timeouts; it does **not** validate as a
+  transition `timer` in this schema version. Always check your pinned schema.
 
 ## Workflow
 
