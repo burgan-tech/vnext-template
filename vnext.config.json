@@ -1,11 +1,11 @@
 {
   "version": "1.0.0",
-  "description": "payments Domain Definition Configuration",
-  "domain": "payments",
+  "description": "{{DOMAIN_NAME}} domain for vNext platform",
+  "domain": "{{DOMAIN_NAME}}",
   "runtimeVersion": "0.0.42",
   "schemaVersion": "0.0.38",
   "paths": {
-    "componentsRoot": "payments",
+    "componentsRoot": "{{DOMAIN_NAME}}",
     "tasks": "Tasks",
     "views": "Views",
     "functions": "Functions",
@@ -22,11 +22,11 @@
     "extensions": [],
     "visibility": "public",
     "metadata": {
-      "description": "Exported components for payments domain",
+      "description": "Exported components for {{DOMAIN_NAME}} domain",
       "maintainer": "vNext Team",
       "license": "MIT",
       "keywords": [
-        "payments",
+        "{{DOMAIN_NAME}}",
         "vnext",
         "workflow",
         "domain"
