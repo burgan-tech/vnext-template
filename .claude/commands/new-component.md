@@ -7,8 +7,28 @@ Scaffold a new vNext component. Use the **authoring-vnext-components** skill for
 component structure, field rules, and validation workflow.
 
 Parse `$ARGUMENTS` as: `<type> <key> [description]`, where `<type>` is one of
-`schema | workflow | task | view | function | extension`. If the type or key is
-missing or `<type>` is not one of those, ask me before generating anything.
+`schema | workflow | task | view | function | extension`.
+
+**Gathering missing inputs — ask before generating anything, prefer popups:**
+- If `<type>` is missing or not one of the six, ask via `AskUserQuestion` with the six
+  types as options.
+- If `<key>` is missing, ask for it as **free text in plain prose** and wait — do NOT
+  invent suggested flow/component names. (`AskUserQuestion` can't help here: it requires
+  ≥2 predefined options and a free-text-only question fails with `too_small`; the user
+  does not want fabricated name suggestions just to satisfy that minimum.) Ask the
+  `<key>` (kebab-case, becomes the filename) and a one-line description together in prose.
+
+**Precondition — the project domain must be initialized.** Before doing anything else,
+read `domain` from [vnext.config.json](vnext.config.json). If it is still the template
+placeholder `{domainName}` (or the `{domainName}/` folder still exists), the project is
+not yet initialized:
+- Ask me (plain text) for the domain name (kebab-case, e.g. `payments`, `lending`).
+- Initialize it. `setup.js`/`npm run setup <name>` short-circuits once the template
+  folders exist, so do it directly: replace `{domainName}` → `<name>` in
+  `vnext.config.json` (`domain`, `componentsRoot`, description, exports keywords) and in
+  `package.json` (the `files` entry), then rename the `{domainName}/` folder and
+  `{domainName}.link.json` to `<name>`. Confirm `npm run validate` is green before
+  scaffolding.
 
 **Do not scaffold a generic minimal skeleton.** A component is only useful once its
 content is defined, so clarify *what it should contain* before writing any JSON.
@@ -22,9 +42,10 @@ Steps:
    `type` and `config` (endpoint/binding/script) and its mapping; for a **schema**:
    the payload fields and constraints; for **function/view/extension**: the relevant
    attributes. The analyst flags ambiguities as questions.
-2. **Ask me the analyst's open questions** (use the question tool, with sensible
-   recommended defaults) and wait for the answers. Don't guess the component's
-   behavior — that's the whole point of this step.
+2. **Ask me the analyst's open questions** and wait for the answers. Use
+   `AskUserQuestion` only for questions with a small set of fixed choices (give a
+   recommended default first); ask anything free-form (names, field lists, free text)
+   in plain prose. Don't guess the component's behavior — that's the whole point.
 3. Read the matching schema in `node_modules/@burgan-tech/vnext-schema/schemas/`
    (run `npm install` first if it's missing) and any existing component in the same
    folder to mirror conventions. For non-trivial components, run the `architect` →
