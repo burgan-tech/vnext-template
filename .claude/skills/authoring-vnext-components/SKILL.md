@@ -48,9 +48,11 @@ All component types share the core envelope from `core-schema.schema.json`.
 Required top-level fields: `key`, `version`, `domain`, `flow`, `flowVersion`,
 `tags`, `attributes`.
 
+Components normally **omit** a `$schema` field (validation maps folder → schema
+automatically); only add one if you mirror an existing component that has it.
+
 ```jsonc
 {
-  "$schema": "../../node_modules/@burgan-tech/vnext-schema/schemas/<schema-file>.json",
   "key": "my-component",          // pattern ^[a-z0-9-]+$
   "version": "1.0.0",             // ^\d+\.\d+\.\d+(-[a-zA-Z]+\.\d+)?$
   "domain": "<the-project-domain>",// pattern ^[a-z0-9-]+$ (matches vnext.config.json domain)
@@ -65,14 +67,37 @@ Required top-level fields: `key`, `version`, `domain`, `flow`, `flowVersion`,
 - Keep the JSON filename consistent with `key` — `referenceResolution.schemaValidationRules.enforceFilenameConsistency` is on.
 - `allowUnknownProperties` is **false**: do not add fields the schema doesn't define.
 
+### Conventions
+
+- **kebab-case** for all `key`s and file names; **PascalCase** for C# `.csx` class names.
+- JSON: **2-space indentation**, double quotes, no trailing commas.
+- `version`/`flowVersion` are semver; bump appropriately for breaking vs. non-breaking changes.
+- A `.meta` folder may sit next to components — it is ignored by validation; don't put components there.
+
+### Cross-component references
+
+Reference another component with the nested shape (target component's own `flow`):
+
+```json
+{ "key": "create-bank-account", "domain": "core", "flow": "sys-tasks", "version": "1.0.0" }
+```
+
+With `strictMode` on, every reference must resolve to an existing key+version of the
+right type. Workflow `startTransition.target` and each transition `target` must name a
+defined state.
+
 ## Type-specific `attributes`
 
 Confirm the exact shape against the schema each time; this is the gist:
 
-- **workflow** — required `type`, `states`, `startTransition`, `labels`. Also
-  supports `timeout`, `functions`, `features`, `sharedTransitions`, `extensions`,
-  `errorBoundary`, `cancel`, `exit`, `updateData`, `schema`, `queryRoles`.
-- **task** — required `type` (enum `"1"`–`"15"`) and `config`.
+- **workflow** — required `type`, `states`, `startTransition`, `labels`. `type` is a
+  letter (`"S"`, `"F"`, `"P"`, `"C"`, …). Also supports `timeout`, `functions`,
+  `features`, `sharedTransitions`, `extensions`, `errorBoundary`, `cancel`, `exit`,
+  `updateData`, `schema`, `queryRoles`. Transitions have a `triggerType`
+  (`0` manual, `1` auto/rule, `2` timer, `3` event); auto transitions must come in
+  complementary pairs with mutually exclusive rules (or a single always-true rule).
+- **task** — required `type` (enum `"1"`–`"15"`, e.g. `"6"`=HTTP, `"7"`=Script,
+  `"15"`=GetInstances — verify against docs) and `config`.
 - **view** — required `type` (integer) and `content`; optional `labels`, `display`.
 - **function** — required `scope` (enum `D`/`F`/`I`) and `task` (object with
   `order`, `task`, `mapping`); optional `labels`, `roles`.
@@ -80,11 +105,29 @@ Confirm the exact shape against the schema each time; this is the gist:
 - **schema** — required `type` (enum `workflow`/`task`/`function`/`view`/`schema`/
   `extension`/`headers`) and `schema`; optional `labels`.
 
+## C# mapping & rule files (`.csx`)
+
+Workflows transform data and evaluate conditions with C# scripts kept in a `src/`
+folder next to the workflow JSON. They are referenced from transitions, tasks, and
+`onExecutionTasks` via a `mapping` object:
+
+```json
+"mapping": { "location": "./src/CreateBankAccountMapping.csx", "code": "<base64>", "encoding": "base64" }
+```
+
+- **Never hand-edit `code` / manually base64-encode.** The vNext VS Code extension
+  auto-encodes the `.csx` into `code` on save. Author the `.csx`; leave `code` to the tool.
+- Mappings implement `IMapping` (`InputHandler`/`OutputHandler` returning `ScriptResponse`);
+  rules implement the condition interface and return a boolean for auto-transition `rule`s.
+- File names kebab/Pascal per existing convention; **class names are PascalCase**.
+
 ## Workflow
 
 1. Identify the component type and read the matching schema file (and any examples
    already present in the domain folder — mirror existing conventions).
-2. Write the JSON into the correct subfolder, filename == `key`.
+2. Write the JSON into the correct subfolder, filename == `key`. For a workflow,
+   author any referenced `.csx` mappings/rules under its `src/` folder, and provide a
+   `.http` test file alongside it that exercises start → transitions → state queries.
 3. Register exports if the component is meant to be shared cross-domain: add the
    filename to the right array under `exports` in [vnext.config.json](vnext.config.json).
 4. Validate: `npm run validate`. It prints clickable `file://path:line` links for

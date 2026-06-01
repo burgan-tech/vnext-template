@@ -17,7 +17,13 @@ Rules:
   and a complete `attributes` for the type.
 - Do not add properties the schema doesn't define. No magic values — name keys and
   states meaningfully. Never embed a secret.
-- Keep references between components consistent (key + version).
+- kebab-case keys/filenames, 2-space JSON indentation, no trailing commas.
+- Cross-component references use the nested shape
+  `{ "key", "domain", "flow", "version" }` and must resolve to an existing component.
+- For workflows: author C# `.csx` mappings/rules under the workflow's `src/` folder
+  (classes PascalCase, implementing `IMapping`/condition interfaces) and a `.http`
+  test file. **Never** manually base64-encode `.csx` into `mapping.code` — the vNext
+  VS Code extension does that on save; you author the `.csx` source only.
 
 When done, run `npm run validate` and fix reported errors until it passes. Writing
 the test/validation harness is not your job, but produce components that validate

@@ -13,8 +13,12 @@ Checklist:
 - Conventions: `key` matches filename and `^[a-z0-9-]+$`; `domain` matches
   vnext.config.json; correct `flow`/`flowVersion` for the component type; semver
   `version`, bumped appropriately for breaking vs. non-breaking changes.
-- References: every reference to another component resolves to an existing
-  key+version. Workflow `startTransition` and transitions point to defined states.
+- References: every nested `{ key, domain, flow, version }` reference resolves to an
+  existing component. Workflow `startTransition` and transitions point to defined
+  states; auto transitions (`triggerType: 1`) come in complementary mutually-exclusive
+  pairs (or a single always-true rule).
+- `.csx` mappings: class names PascalCase, referenced via `mapping.location`; no
+  hand-edited / manually base64-encoded `mapping.code`.
 - Exports: components meant to be shared are listed under `exports` in
   vnext.config.json, and every listed export exists on disk.
 - Readability: meaningful keys/state names, no dead or duplicated components,

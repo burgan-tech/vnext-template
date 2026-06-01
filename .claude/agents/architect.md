@@ -19,8 +19,11 @@ Ground rules:
 
 Your output includes:
 1. The full path list of component files to add/change and each one's responsibility.
-2. For workflows: the states, the `startTransition`, and the transition map (draft).
-3. For tasks/functions/extensions: chosen `type`/`scope` and how they're referenced.
+2. For workflows: the states, the `startTransition`, the transition map (with
+   `triggerType` per transition; auto transitions in complementary mutually-exclusive
+   pairs), and the `.csx` mappings/rules needed under `src/` plus a `.http` test file.
+3. For tasks/functions/extensions: chosen `type`/`scope` and how they're referenced
+   (nested `{ key, domain, flow, version }` shape).
 4. Which components must be added to `exports` in vnext.config.json (cross-domain).
 5. Points of attention / risks (reference resolution, versioning, breaking changes).
 
