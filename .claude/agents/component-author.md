@@ -20,6 +20,10 @@ Rules:
 - kebab-case keys/filenames, 2-space JSON indentation, no trailing commas.
 - Cross-component references use the nested shape
   `{ "key", "domain", "flow", "version" }` and must resolve to an existing component.
+- **Every workflow MUST declare a master payload schema** at `attributes.schema.schema`
+  (nested reference to a `sys-schemas` component) — `npm run validate` enforces this as
+  a domain rule even though the JSON schema marks it optional. Author the schema
+  component if it doesn't exist, and normally set `startTransition.schema` to the same.
 - For workflows: author C# `.csx` mappings/rules under the workflow's `src/` folder
   (classes PascalCase, implementing `IMapping`/condition interfaces) and a `.http`
   test file. **Never** manually base64-encode `.csx` into `mapping.code` — the vNext

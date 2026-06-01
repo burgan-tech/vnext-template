@@ -16,6 +16,10 @@ Ground rules:
 - `domain` must match [vnext.config.json](vnext.config.json); filenames match `key`;
   no properties outside the schema (`allowUnknownProperties` is false).
 - Reuse existing components and follow the conventions already in the domain folder.
+- **Every workflow MUST have a master payload schema** (`attributes.schema.schema`,
+  nested reference to a `sys-schemas` component). This is a domain rule enforced by
+  `npm run validate`, stricter than the JSON schema. Your design must include the
+  schema component and wire it into the workflow (and normally `startTransition.schema`).
 
 Your output includes:
 1. The full path list of component files to add/change and each one's responsibility.

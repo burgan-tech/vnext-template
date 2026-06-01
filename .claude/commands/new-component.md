@@ -10,14 +10,36 @@ Parse `$ARGUMENTS` as: `<type> <key> [description]`, where `<type>` is one of
 `schema | workflow | task | view | function | extension`. If the type or key is
 missing or `<type>` is not one of those, ask me before generating anything.
 
+**Do not scaffold a generic minimal skeleton.** A component is only useful once its
+content is defined, so clarify *what it should contain* before writing any JSON.
+
 Steps:
-1. Read the matching schema in `node_modules/@burgan-tech/vnext-schema/schemas/`
+1. **Clarify the content with the `analyst` agent first.** Hand the analyst the
+   `<type>`, `<key>`, and any `[description]`. The analyst inspects the domain and
+   [vnext.config.json](vnext.config.json) and turns the request into the concrete
+   content the component needs for its type — e.g. for a **workflow**: states,
+   start/transitions, and which tasks/schemas it references; for a **task**: the task
+   `type` and `config` (endpoint/binding/script) and its mapping; for a **schema**:
+   the payload fields and constraints; for **function/view/extension**: the relevant
+   attributes. The analyst flags ambiguities as questions.
+2. **Ask me the analyst's open questions** (use the question tool, with sensible
+   recommended defaults) and wait for the answers. Don't guess the component's
+   behavior — that's the whole point of this step.
+3. Read the matching schema in `node_modules/@burgan-tech/vnext-schema/schemas/`
    (run `npm install` first if it's missing) and any existing component in the same
-   folder to mirror conventions.
-2. Read the project `domain` from [vnext.config.json](vnext.config.json).
-3. Create the JSON file in the correct domain subfolder, filename == `<key>.json`,
+   folder to mirror conventions. For non-trivial components, run the `architect` →
+   `component-author` agents on the analyst's plan; for simple ones, author directly.
+4. Read the project `domain` from [vnext.config.json](vnext.config.json).
+5. Create the JSON file in the correct domain subfolder, filename == `<key>.json`,
    with the full common envelope (correct `flow` for the type, semver `version`,
-   matching `domain`) and a minimal-but-valid `attributes` for that type.
-4. Run `npm run validate` and fix any errors until it passes.
-5. Tell me whether the component should be added to `exports` in vnext.config.json
+   matching `domain`) and an `attributes` that reflects the **clarified content** from
+   steps 1–2 (not an empty placeholder). Author any referenced tasks/schemas and
+   `.csx` sources the design calls for.
+6. Run `npm run validate` and fix any errors until it passes.
+7. Tell me whether the component should be added to `exports` in vnext.config.json
    for cross-domain use, and do it if I confirm.
+8. **Document it with the `doc-writer` agent.** Once the component validates,
+   doc-writer writes `docs/<Type>/<key>.md` (one file per component, mirroring the
+   domain folders) — **creating** it if absent, **updating** it in place if it
+   already exists — and adds a [CHANGELOG.md](CHANGELOG.md) entry. Any referenced
+   tasks/schemas authored alongside the component get their own docs too.

@@ -96,6 +96,11 @@ Confirm the exact shape against the schema each time; this is the gist:
   `updateData`, `schema`, `queryRoles`. Transitions have a `triggerType`
   (`0` manual, `1` auto/rule, `2` timer, `3` event); auto transitions must come in
   complementary pairs with mutually exclusive rules (or a single always-true rule).
+  **Domain rule — every workflow MUST declare a master payload schema** at
+  `attributes.schema.schema` (a nested reference `{ key, domain, flow: "sys-schemas",
+  version }`), even though the JSON schema marks it optional. `npm run validate`
+  enforces this. Author the referenced schema component first, and normally point the
+  `startTransition.schema` at the same schema so the start payload is validated.
 - **task** — required `type` (enum `"1"`–`"15"`, e.g. `"6"`=HTTP, `"7"`=Script,
   `"15"`=GetInstances — verify against docs) and `config`.
 - **view** — required `type` (integer) and `content`; optional `labels`, `display`.

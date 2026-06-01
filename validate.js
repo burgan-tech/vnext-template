@@ -744,12 +744,26 @@ validate('JSON files schema validation using @burgan-tech/vnext-schema', () => {
           try {
             const jsonContent = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
             const valid = validator.validator(jsonContent);
-            
-            if (valid) {
+
+            // Domain convention (stricter than the JSON schema): every workflow must
+            // declare a master payload schema at attributes.schema.schema.
+            const workflowMissingSchema =
+              valid &&
+              schemaType === 'workflow' &&
+              !jsonContent?.attributes?.schema?.schema;
+
+            if (valid && !workflowMissingSchema) {
               // Track passed files
               passedFiles.push({
                 file: fullPath,
                 type: schemaType
+              });
+            } else if (workflowMissingSchema) {
+              errorCount++;
+              errors.push({
+                file: fullPath,
+                type: schemaType,
+                message: `Workflow convention failed: missing required ${colorize('attributes.schema.schema', 'cyan')} — every workflow must declare a master payload schema (nested reference { key, domain, flow: "sys-schemas", version }).`
               });
             } else {
               errorCount++;
