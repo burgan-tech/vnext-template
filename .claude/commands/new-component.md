@@ -61,11 +61,22 @@ Steps:
    matching `domain`) and an `attributes` that reflects the **clarified content** from
    steps 1–2 (not an empty placeholder). Author any referenced tasks/schemas and
    `.csx` sources the design calls for.
-6. Run `npm run validate` and fix any errors until it passes.
+6. **Validate with the `validator` agent.** Run `npm run validate` (and `npm test`)
+   and fix any errors until everything passes. This is the gate for step 8 — do not
+   proceed until validation is green.
 7. Tell me whether the component should be added to `exports` in vnext.config.json
    for cross-domain use, and do it if I confirm.
-8. **Document it with the `doc-writer` agent.** Once the component validates,
-   doc-writer writes `docs/<Type>/<key>.md` (one file per component, mirroring the
-   domain folders) — **creating** it if absent, **updating** it in place if it
-   already exists — and adds a [CHANGELOG.md](CHANGELOG.md) entry. Any referenced
-   tasks/schemas authored alongside the component get their own docs too.
+8. **After the validator passes, run `security-reviewer` and `doc-writer` in
+   parallel** (launch both in a single message as concurrent subagents — they don't
+   conflict: doc-writer writes under `docs/` + `CHANGELOG.md`, security-reviewer only
+   reads):
+   - **`security-reviewer`** — scans the new/changed components for leaked secrets,
+     untrusted reference hosts (vs `allowedHosts`), over-broad exports/visibility, and
+     unsafe task/function/extension config. Reports findings by risk level.
+   - **`doc-writer`** — writes `docs/<Type>/<key>.md` (one file per component,
+     mirroring the domain folders), **creating** it if absent or **updating** it in
+     place if it exists, plus a [CHANGELOG.md](CHANGELOG.md) entry. Referenced
+     tasks/schemas authored alongside get their own docs too.
+
+   If `security-reviewer` returns a High/Medium finding, fix it, re-run the `validator`,
+   and have `doc-writer` refresh the affected doc.
