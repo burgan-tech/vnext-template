@@ -11,7 +11,8 @@
     "functions": "Functions",
     "extensions": "Extensions",
     "workflows": "Workflows",
-    "schemas": "Schemas"
+    "schemas": "Schemas",
+    "mappings": "Mappings"
   },
   "exports": {
     "functions": [],
@@ -20,6 +21,7 @@
     "views": [],
     "schemas": [],
     "extensions": [],
+    "mappings": [],
     "visibility": "public",
     "metadata": {
       "description": "Exported components for {domainName} domain",
