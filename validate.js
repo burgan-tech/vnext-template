@@ -664,6 +664,22 @@ validate('JSON files schema validation using @burgan-tech/vnext-schema', () => {
   const ajv2019 = new Ajv2019({ strict: false, allErrors: true, verbose: true });
   addFormats(ajv2019);
 
+  // Newer schema packages $ref shared vocabularies by $id (for example schema-definition → record-vocab);
+  // register them so those schemas compile. Older packages have no addVocabularies and need nothing.
+  if (typeof vnextSchema.addVocabularies === 'function') {
+    for (const ajv of [ajv7, ajv2019]) {
+      try {
+        // The vocabularies are draft-07; the 2019-09 instance needs that meta-schema to accept them.
+        if (!ajv.getSchema('http://json-schema.org/draft-07/schema')) {
+          ajv.addMetaSchema(require('ajv/dist/refs/json-schema-draft-07.json'));
+        }
+        vnextSchema.addVocabularies(ajv);
+      } catch (error) {
+        console.log(`  ⚠ Warning: Could not register vnext-schema vocabularies: ${error.message}`);
+      }
+    }
+  }
+
   // Pick the correct AJV instance based on the schema's $schema field
   function getAjvInstance(schema) {
     const draft = schema?.$schema || '';
