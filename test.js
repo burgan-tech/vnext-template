@@ -41,6 +41,7 @@ test('Module exports expected functions', () => {
     'getFunctions',
     'getExtensions',
     'getMappings',
+    'getAgents',
     'getAvailableTypes',
     'getDomainName'
   ];
@@ -62,7 +63,7 @@ test('getAvailableTypes returns expected array', () => {
   }
   
   // Types come from pathsConfig which uses PascalCase directory names
-  const expectedTypes = ['Schemas', 'Workflows', 'Tasks', 'Views', 'Functions', 'Extensions', 'Mappings'];
+  const expectedTypes = ['Schemas', 'Workflows', 'Tasks', 'Views', 'Functions', 'Extensions', 'Mappings', 'Agents'];
   for (const type of expectedTypes) {
     if (!types.includes(type)) {
       throw new Error(`Expected type '${type}' not found in available types. Got: [${types.join(', ')}]`);
@@ -84,7 +85,7 @@ test('getDomainConfig handles missing config gracefully', () => {
 // Test 5: Component getters return objects
 test('Component getters return objects', () => {
   const vnextTemplate = require('./index.js');
-  const getters = ['getSchemas', 'getWorkflows', 'getTasks', 'getViews', 'getFunctions', 'getExtensions', 'getMappings'];
+  const getters = ['getSchemas', 'getWorkflows', 'getTasks', 'getViews', 'getFunctions', 'getExtensions', 'getMappings', 'getAgents'];
   
   for (const getter of getters) {
     const result = vnextTemplate[getter]();
@@ -142,7 +143,7 @@ test('Domain directory structure is valid', () => {
     }
     
     // Check for typical vnext structure
-    const expectedDirs = ['Schemas', 'Workflows', 'Tasks', 'Views', 'Functions', 'Extensions', 'Mappings'];
+    const expectedDirs = ['Schemas', 'Workflows', 'Tasks', 'Views', 'Functions', 'Extensions', 'Mappings', 'Agents'];
     let foundDirs = 0;
     
     for (const dir of expectedDirs) {
@@ -185,6 +186,33 @@ test('JSON files in domain directory are valid', () => {
       } catch (error) {
         throw new Error(`Invalid JSON in file ${file}: ${error.message}`);
       }
+    }
+  }
+});
+
+// Test 11: Example MCP task names its credentials only through secretRef
+test('Example MCP task carries credentials only as secretRef', () => {
+  const examplePath = path.join('examples', 'mcp', 'crm-mcp-task.json');
+  if (!fs.existsSync(examplePath)) {
+    return;
+  }
+
+  const task = JSON.parse(fs.readFileSync(examplePath, 'utf8'));
+  const config = task.attributes && task.attributes.config;
+  if (!task.attributes || task.attributes.type !== '24' || !config) {
+    throw new Error(`${examplePath} must be an MCP task (attributes.type "24") with a config`);
+  }
+
+  if (config.auth) {
+    const authKeys = Object.keys(config.auth).filter(k => !['header', 'scheme', 'secretRef'].includes(k));
+    if (authKeys.length > 0 || typeof config.auth.secretRef !== 'string' || !config.auth.secretRef.trim()) {
+      throw new Error(`${examplePath}: auth must name its credential through secretRef only`);
+    }
+  }
+
+  for (const [name, value] of Object.entries(config.headers || {})) {
+    if (!value || typeof value !== 'object' || Object.keys(value).join() !== 'secretRef') {
+      throw new Error(`${examplePath}: header ${name} must be { "secretRef": "..." }, never a plain value`);
     }
   }
 });

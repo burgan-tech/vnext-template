@@ -516,6 +516,7 @@ validate('Main entry point functionality', () => {
     'getFunctions',
     'getExtensions',
     'getMappings',
+    'getAgents',
     'getAvailableTypes',
     'getDomainName'
   ];
@@ -570,7 +571,8 @@ validate('Domain directory structure', () => {
     pathsConfig.views,
     pathsConfig.functions,
     pathsConfig.extensions,
-    pathsConfig.mappings
+    pathsConfig.mappings,
+    pathsConfig.agents
   ];
   const existingDirs = vnextDirs.filter(dir => fs.existsSync(path.join(domainName, dir)));
   
@@ -676,7 +678,9 @@ validate('JSON files schema validation using @burgan-tech/vnext-schema', () => {
     [pathsConfig.views]: 'view',
     [pathsConfig.functions]: 'function',
     [pathsConfig.extensions]: 'extension',
-    [pathsConfig.mappings]: 'mapping'
+    [pathsConfig.mappings]: 'mapping',
+    // sys-agents components; validated once @burgan-tech/vnext-schema exposes the 'agent' schema
+    [pathsConfig.agents]: 'agent'
   };
 
   // Get available schema types
@@ -700,6 +704,21 @@ validate('JSON files schema validation using @burgan-tech/vnext-schema', () => {
     }
   }
 
+  // Warn when a component folder has files but the installed schema package has no schema for it
+  // (for example Agents/ with a vnext-schema release older than the AI Agent state).
+  for (const [dirName, schemaType] of Object.entries(directoryToSchemaType)) {
+    if (!dirName || validators[dirName]) {
+      continue;
+    }
+    const componentDir = path.join(domainName, dirName);
+    const hasJsonFiles = (dir) => fs.readdirSync(dir, { withFileTypes: true }).some(entry =>
+      entry.name !== '.meta' &&
+      (entry.isDirectory() ? hasJsonFiles(path.join(dir, entry.name)) : entry.name.endsWith('.json')));
+    if (fs.existsSync(componentDir) && hasJsonFiles(componentDir)) {
+      console.log(`  ⚠ Warning: @burgan-tech/vnext-schema has no '${schemaType}' schema; files in ${componentDir} are not schema-validated`);
+    }
+  }
+
   if (Object.keys(validators).length === 0) {
     console.log(`  ⚠ No validators available, skipping schema validation`);
     return true;
@@ -709,6 +728,16 @@ validate('JSON files schema validation using @burgan-tech/vnext-schema', () => {
   let errorCount = 0;
   const errors = [];
   const passedFiles = [];
+
+  // In the unconfigured template itself the components still carry the domain-name placeholder,
+  // which the schemas' domain pattern rejects. Validate them as a generated project would see them.
+  // (The token is assembled so that setup/init, which replace it in every .js file, leave it intact.)
+  const domainPlaceholder = '{' + 'domainName' + '}';
+  const isUnconfiguredTemplate = domainName === domainPlaceholder;
+  const readComponentJson = (filePath) => {
+    const raw = fs.readFileSync(filePath, 'utf8');
+    return JSON.parse(isUnconfiguredTemplate ? raw.split(domainPlaceholder).join('template-domain') : raw);
+  };
 
   // Validate JSON files against schemas
   const validateJsonAgainstSchema = (dirPath, domainPath) => {
@@ -745,7 +774,7 @@ validate('JSON files schema validation using @burgan-tech/vnext-schema', () => {
         if (validator) {
           validatedCount++;
           try {
-            const jsonContent = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+            const jsonContent = readComponentJson(fullPath);
             const valid = validator.validator(jsonContent);
             
             if (valid) {
@@ -868,7 +897,8 @@ validate('Module functionality test', () => {
     pathsConfig.views,
     pathsConfig.functions,
     pathsConfig.extensions,
-    pathsConfig.mappings
+    pathsConfig.mappings,
+    pathsConfig.agents
   ];
   
   for (const dir of expectedDirs) {
@@ -885,7 +915,8 @@ validate('Module functionality test', () => {
     'getViews',
     'getFunctions',
     'getExtensions',
-    'getMappings'
+    'getMappings',
+    'getAgents'
   ];
   
   for (const getter of componentGetters) {

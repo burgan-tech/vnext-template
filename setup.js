@@ -25,6 +25,7 @@ function getPathsConfig() {
     functions: 'Functions',
     extensions: 'Extensions',
     mappings: 'Mappings',
+    agents: 'Agents',
   };
   
   if (config && config.paths) {
@@ -159,7 +160,7 @@ function replaceInDirectory(dirPath, domainName, processedFiles = new Set()) {
     } else if (entry.isFile()) {
       // Process text files
       const ext = path.extname(entry.name).toLowerCase();
-      if (['.json', '.js', '.md', '.sh', '.txt', '.yml', '.yaml'].includes(ext) ||
+      if (['.json', '.js', '.md', '.sh', '.txt', '.yml', '.yaml', '.http'].includes(ext) ||
           entry.name === '.gitignore' ||
           entry.name === '.gitattributes') {
         if (!processedFiles.has(relativePath)) {

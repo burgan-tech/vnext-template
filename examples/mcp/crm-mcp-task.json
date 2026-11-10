@@ -1,0 +1,34 @@
+{
+  "key": "crm-mcp-task",
+  "flow": "sys-tasks",
+  "flowVersion": "1.0.0",
+  "domain": "{domainName}",
+  "version": "1.0.0",
+  "tags": [
+    "example",
+    "mcp"
+  ],
+  "attributes": {
+    "type": "24",
+    "config": {
+      "transport": "http",
+      "endpoint": "https://crm-mcp.example.com/mcp",
+      "auth": {
+        "header": "Authorization",
+        "scheme": "Bearer",
+        "secretRef": "vault/workflow-secret/CRM_MCP_TOKEN"
+      },
+      "headers": {
+        "X-Tenant": {
+          "secretRef": "CRM_MCP_TENANT"
+        }
+      },
+      "operation": "callTool",
+      "tool": "search_customer",
+      "arguments": {
+        "q": "example"
+      },
+      "timeoutSeconds": 20
+    }
+  }
+}

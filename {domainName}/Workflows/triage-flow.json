@@ -1,0 +1,245 @@
+{
+  "key": "triage-flow",
+  "flow": "sys-flows",
+  "flowVersion": "1.0.0",
+  "domain": "{domainName}",
+  "version": "1.0.0",
+  "tags": [
+    "example",
+    "ai-agent"
+  ],
+  "attributes": {
+    "type": "F",
+    "timeout": null,
+    "labels": [
+      {
+        "language": "en-US",
+        "label": "Triage (AI agent example)"
+      }
+    ],
+    "functions": [],
+    "features": [],
+    "extensions": [],
+    "startTransition": {
+      "key": "start",
+      "target": "classifying",
+      "triggerType": 0,
+      "versionStrategy": "Major",
+      "labels": [
+        {
+          "language": "en-US",
+          "label": "Start triage"
+        }
+      ],
+      "onExecutionTasks": []
+    },
+    "states": [
+      {
+        "key": "classifying",
+        "stateType": 6,
+        "subType": 5,
+        "versionStrategy": "Major",
+        "labels": [
+          {
+            "language": "en-US",
+            "label": "Classifying"
+          }
+        ],
+        "view": null,
+        "subFlow": null,
+        "onEntries": [],
+        "onExits": [],
+        "transitions": [
+          {
+            "key": "is-question",
+            "target": "answered",
+            "triggerType": 1,
+            "versionStrategy": "Minor",
+            "labels": [
+              {
+                "language": "en-US",
+                "label": "Is a question"
+              }
+            ],
+            "onExecutionTasks": [],
+            "description": "The customer asks for information."
+          },
+          {
+            "key": "is-fraud",
+            "target": "escalated",
+            "triggerType": 1,
+            "versionStrategy": "Minor",
+            "labels": [
+              {
+                "language": "en-US",
+                "label": "Is fraud"
+              }
+            ],
+            "onExecutionTasks": [],
+            "description": "The customer reports fraud."
+          },
+          {
+            "key": "classify-failed",
+            "target": "failed",
+            "triggerType": 1,
+            "versionStrategy": "Minor",
+            "labels": [
+              {
+                "language": "en-US",
+                "label": "Classification failed"
+              }
+            ],
+            "onExecutionTasks": []
+          },
+          {
+            "key": "too-many",
+            "target": "exhausted",
+            "triggerType": 1,
+            "versionStrategy": "Minor",
+            "labels": [
+              {
+                "language": "en-US",
+                "label": "Entered too often"
+              }
+            ],
+            "onExecutionTasks": []
+          }
+        ],
+        "agent": {
+          "agent": {
+            "key": "triage-agent",
+            "domain": "{domainName}",
+            "flow": "sys-agents",
+            "version": "1.0.0"
+          },
+          "prompt": {
+            "template": "<message>{{ data.message }}</message>"
+          },
+          "output": {
+            "path": "$.triage"
+          },
+          "decision": {
+            "mode": "model",
+            "fallback": "classify-failed",
+            "onExhausted": "too-many"
+          },
+          "policy": {
+            "maxEntries": 2
+          }
+        }
+      },
+      {
+        "key": "answered",
+        "stateType": 2,
+        "subType": 0,
+        "versionStrategy": "Major",
+        "labels": [
+          {
+            "language": "en-US",
+            "label": "Answered"
+          }
+        ],
+        "view": null,
+        "subFlow": null,
+        "onEntries": [],
+        "onExits": [],
+        "transitions": [
+          {
+            "key": "ask-again",
+            "target": "classifying",
+            "triggerType": 0,
+            "versionStrategy": "Minor",
+            "labels": [
+              {
+                "language": "en-US",
+                "label": "Ask again"
+              }
+            ],
+            "onExecutionTasks": []
+          },
+          {
+            "key": "close",
+            "target": "closed",
+            "triggerType": 0,
+            "versionStrategy": "Minor",
+            "labels": [
+              {
+                "language": "en-US",
+                "label": "Close"
+              }
+            ],
+            "onExecutionTasks": []
+          }
+        ]
+      },
+      {
+        "key": "escalated",
+        "stateType": 3,
+        "subType": 1,
+        "versionStrategy": "Major",
+        "labels": [
+          {
+            "language": "en-US",
+            "label": "Escalated"
+          }
+        ],
+        "view": null,
+        "subFlow": null,
+        "onEntries": [],
+        "onExits": [],
+        "transitions": []
+      },
+      {
+        "key": "failed",
+        "stateType": 3,
+        "subType": 1,
+        "versionStrategy": "Major",
+        "labels": [
+          {
+            "language": "en-US",
+            "label": "Failed"
+          }
+        ],
+        "view": null,
+        "subFlow": null,
+        "onEntries": [],
+        "onExits": [],
+        "transitions": []
+      },
+      {
+        "key": "exhausted",
+        "stateType": 3,
+        "subType": 1,
+        "versionStrategy": "Major",
+        "labels": [
+          {
+            "language": "en-US",
+            "label": "Exhausted"
+          }
+        ],
+        "view": null,
+        "subFlow": null,
+        "onEntries": [],
+        "onExits": [],
+        "transitions": []
+      },
+      {
+        "key": "closed",
+        "stateType": 3,
+        "subType": 1,
+        "versionStrategy": "Major",
+        "labels": [
+          {
+            "language": "en-US",
+            "label": "Closed"
+          }
+        ],
+        "view": null,
+        "subFlow": null,
+        "onEntries": [],
+        "onExits": [],
+        "transitions": []
+      }
+    ]
+  }
+}
