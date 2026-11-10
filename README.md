@@ -56,13 +56,16 @@ After installation, your project structure will be:
 
 ```
 <domain-name>/
+├── Agents/          # AI agents (sys-agents), with the triage-agent example
 ├── Extensions/
 ├── Functions/
 ├── Schemas/
 ├── Tasks/
 ├── Views/
 ├── Mappings/
-└── Workflows/
+└── Workflows/       # with the triage-flow AiAgent example
+examples/
+└── mcp/             # MCP task example (type 24), not published until you copy it
 ```
 
 ### Access components in code
@@ -102,6 +105,7 @@ const schemasPath = vnextTemplate.getComponentPath('schemas');
 | `getFunctions()` | Get all functions |
 | `getExtensions()` | Get all extensions |
 | `getMappings()` | Get all mappings |
+| `getAgents()` | Get all AI agents (sys-agents) |
 | `getDomainName()` | Get domain directory name |
 | `getAvailableTypes()` | Get list of available component types |
 | `getComponentPath(type)` | Get full path for a component type |
@@ -121,7 +125,8 @@ The `vnext.config.json` file allows you to customize paths and exports:
     "views": "Views",
     "functions": "Functions",
     "extensions": "Extensions",
-    "mappings": "Mappings"
+    "mappings": "Mappings",
+    "agents": "Agents"
   },
   "exports": {
     "schemas": ["schema1.json", "schema2.json"],
@@ -130,7 +135,8 @@ The `vnext.config.json` file allows you to customize paths and exports:
     "views": [],
     "functions": [],
     "extensions": [],
-    "mappings": []
+    "mappings": [],
+    "agents": []
   }
 }
 ```
@@ -148,6 +154,37 @@ You can customize component directory names:
   }
 }
 ```
+
+`paths.agents` is optional: `index.js`, `validate.js` and `build.js` default it to `Agents`. The vNext
+CLI (`wf sync`) only publishes the agents folder when `paths.agents` is declared, and publishes it
+before the workflows that reference the agents.
+
+## 🤖 AI agents (experimental)
+
+An `AiAgent` state (`stateType: 6`) runs an AI agent when an instance enters it; the agent's decision
+picks one of the state's automatic transitions without a rule. The agent itself is a `sys-agents`
+component in `Agents/`. A new project ships a working example:
+
+| File | What it shows |
+|------|---------------|
+| `Agents/triage-agent.json` | Agent on the `local` provider (deterministic, no network): instructions, a script tool, output schema, policy |
+| `Agents/triage-agent.http` | `POST /api/v1/{domain}/definitions/agents/{key}/dry-run` with `prompt`, `data` and optional `candidates` |
+| `Workflows/triage-flow.json` | AiAgent state with a model decision, a `fallback`, `onExhausted` and transition `description`s |
+| `Workflows/triage-flow.http` | Start an instance, read its state, data and `functions/agent-runs` |
+| `examples/mcp/` | MCP task (type 24) with credentials only as `{ "secretRef": "…" }`, also usable as an agent tool |
+
+Things to know:
+
+- `provider` names a provider profile configured on the runtime (`AiAgent:Providers`), never an endpoint
+  or a key. The `local` profile exists by default.
+- The dry-run endpoint answers only callers whose `role` header is listed in the runtime's
+  `AiAgent:DryRun:Roles` (empty disables it).
+- An MCP task's endpoint host must be in the runtime's `Mcp:AllowedHosts` at publish time, which is why
+  the example stays outside the domain folder until you need it.
+- Never put a secret in component JSON; credentials are always `secretRef`s.
+- Validating `Agents/` and `stateType: 6` needs a `@burgan-tech/vnext-schema` with the AI Agent state
+  (`schemaVersion` 0.0.60 or later). With an older schema package `npm run validate` warns that
+  `Agents/` is not schema-validated and rejects the AiAgent flow; delete the examples if you stay on it.
 
 ## ✅ Validation
 
@@ -228,6 +265,7 @@ npm run build -- --skip-validation
 ```
 dist/
 ├── <domain>/
+│   ├── Agents/
 │   ├── Extensions/
 │   ├── Functions/
 │   ├── Schemas/
@@ -245,6 +283,7 @@ dist/
 ```
 dist/
 ├── <domain>/
+│   ├── Agents/         # Only exported files
 │   ├── Extensions/     # Only exported files
 │   ├── Functions/      # Only exported files
 │   ├── Schemas/        # Only exported files
