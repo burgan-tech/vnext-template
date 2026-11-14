@@ -101,7 +101,7 @@ function copyAndReplace(src, dest, domainName, skipDirs = []) {
     const fileName = path.basename(src);
     
     // Process text files
-    if (['.json', '.js', '.md', '.sh', '.txt', '.yml', '.yaml'].includes(ext) ||
+    if (['.json', '.js', '.md', '.sh', '.txt', '.yml', '.yaml', '.http'].includes(ext) ||
         fileName === '.gitignore' ||
         fileName === '.gitattributes' ||
         fileName === '.cursorrules') {
@@ -169,6 +169,7 @@ function init() {
   // Files and directories to copy
   const itemsToCopy = [
     '{domainName}',
+    'examples',
     'vnext.config.json',
     'package.json',
     'index.js',

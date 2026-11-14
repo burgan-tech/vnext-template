@@ -48,6 +48,7 @@
     "setup.js",
     "build.js",
     "{domainName}/",
+    "examples/",
     "vnext.config.json",
     "README.md",
     "package.json",

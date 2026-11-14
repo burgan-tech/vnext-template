@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- AI Agent support (burgan-tech/vnext#1105, experimental):
+  - `Agents/` component folder (`sys-agents`) and `paths.agents` / `exports.agents` in `vnext.config.json`
+  - `getAgents()` in `index.js`; `paths.agents` defaults to `Agents` in `index.js`, `setup.js` and `build.js`
+  - `validate.js` validates `Agents/**` against the `agent` schema of `@burgan-tech/vnext-schema` when the
+    installed package provides it, and warns when it does not
+  - Examples: `triage-agent` (provider `local`) with a dry-run `.http` request, the `triage-flow` AiAgent
+    workflow (`stateType: 6`) with an `.http` walkthrough, and an MCP task (type 24) under `examples/mcp/`
+    whose credentials are `secretRef`s only
+- `.http` files are text: `init.js` and `setup.js` replace the domain-name placeholder in them
 - `init.js` - Script for creating new projects via `npx @burgan-tech/vnext-template <domain-name>`
 - `setup.js` - Interactive setup script for replacing `{domainName}` in template files
 - Support for domain name via command-line argument in `npx` command
