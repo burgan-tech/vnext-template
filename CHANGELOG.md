@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `validate.js` **authoring lint** (warnings only; the run still passes). It catches patterns that pass the JSON
+  schemas but break on the cluster or in the client. Measured 24.11.2026 on ocptest with the staff back-office client:
+  - a `showIf` / `hideIf` on a view **component**: the renderer ignores it and draws every guarded block.
+    Conditionals belong in schema `x-conditional`; a component uses `visible`;
+  - a `urn:amorphie:wf:…` button `command`: no client parses it, so the click ends in "No handler";
+  - `urn:vnext:flow:transition:<d>:<f>:${param}:<tx>` on a view: the back-office client does not fill `${param}`
+    there and asks for instance `${param}` (404);
+  - a master schema that requires fields the start schema does not: the start passes and then fails on the
+    master (500 "Start transition validation failed");
+  - a flow offered with a back-office **New** button (a `records/*.json` menu item with `payload.create`) whose
+    start schema has `required`: New sends an empty body, so every click fails and no record is created.
 - AI Agent support (burgan-tech/vnext#1105, experimental):
   - `Agents/` component folder (`sys-agents`) and `paths.agents` / `exports.agents` in `vnext.config.json`
   - `getAgents()` in `index.js`; `paths.agents` defaults to `Agents` in `index.js`, `setup.js` and `build.js`
@@ -38,6 +49,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Development-only files from published package (test.js, test-domain-detection.sh, .cursorrules, .gitignore, .gitattributes)
 
 ### Fixed
+- `sync-schema-version.js` now also updates `@burgan-tech/vnext-schema` in `devDependencies` when it is listed
+  there. Previously only `dependencies` moved. Because `^0.0.x` pins exactly one version, the devDependency kept
+  `^0.0.38` and `validate.js` could resolve the old schema package.
 
 ### Security
 

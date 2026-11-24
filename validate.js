@@ -893,6 +893,124 @@ validate('JSON files schema validation using @burgan-tech/vnext-schema', () => {
   return true;
 });
 
+// Validation 5c: authoring lint — patterns that pass the JSON schemas but break at runtime / in the client.
+// Warnings only (never fails the run); each line names the file, the JSON path and the fix.
+let authoringWarnings = 0;
+validate('Authoring lint (views, schemas)', () => {
+  const vnextTemplate = require('./index.js');
+  const domainName = vnextTemplate.getDomainName();
+  const pathsConfig = vnextTemplate.getPathsConfig();
+  if (!domainName || !fs.existsSync(domainName)) {
+    console.log(`  ⚠ No domain directory found, skipping authoring lint`);
+    return true;
+  }
+
+  const listJson = (dir) => {
+    const out = [];
+    if (!fs.existsSync(dir)) return out;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name === '.meta' || entry.name === 'node_modules') continue;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) out.push(...listJson(full));
+      else if (entry.isFile() && entry.name.endsWith('.json')) out.push(full);
+    }
+    return out;
+  };
+  const readJson = (file) => {
+    try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return null; }
+  };
+  const warn = (file, where, message) => {
+    authoringWarnings++;
+    console.log(`  ${colorize('⚠', 'yellow')} ${colorize(file, 'yellow')} ${colorize(where, 'dim')}\n      ${message}`);
+  };
+
+  // --- Views (pseudo-ui): component-level showIf, dead command URNs, ${param} on the record's own view
+  const viewsDir = path.join(domainName, pathsConfig.views);
+  for (const file of listJson(viewsDir)) {
+    const view = readJson(file);
+    if (!view || !view.attributes) continue;
+    const walk = (node, where) => {
+      if (Array.isArray(node)) { node.forEach((child, i) => walk(child, `${where}[${i}]`)); return; }
+      if (!node || typeof node !== 'object') return;
+      // A component node is an object with a string `type`; `x-conditional` blocks live on schema properties.
+      if (typeof node.type === 'string' && (node.showIf || node.hideIf)) {
+        warn(file, `${where}.${node.showIf ? 'showIf' : 'hideIf'}`,
+          `components have no showIf/hideIf — the renderer ignores it and draws the block. Use "visible": "$<field>" (truthy), ` +
+          `a bound {tr,en} object for per-language text, or an x-enum label (view-author-guide §2.5).`);
+      }
+      if (typeof node.command === 'string') {
+        if (/^urn:amorphie:wf:/.test(node.command)) {
+          warn(file, `${where}.command`,
+            `"${node.command}" is parsed by no client ("No handler", nothing fires). ` +
+            `Use urn:vnext:flow:transition:<domain>:<flow>:<transition> (view-author-guide §4.3).`);
+        } else if (/^urn:vnext:flow:transition:[^:]+:[^:]+:\$\{param\}:/.test(node.command)) {
+          warn(file, `${where}.command`,
+            `"${node.command}": a button on the record's own view does not get \${param} filled in the back-office client ` +
+            `(it asks for instance "\${param}", 404). Use the no-id form urn:vnext:flow:transition:<domain>:<flow>:<transition>.`);
+        }
+      }
+      for (const [key, value] of Object.entries(node)) {
+        if (key !== 'x-conditional' && value && typeof value === 'object') walk(value, `${where}.${key}`);
+      }
+    };
+    walk(view.attributes, 'attributes');
+  }
+
+  // --- Workflows × schemas: starts that the runtime will refuse
+  const schemasByKey = {};
+  for (const file of listJson(path.join(domainName, pathsConfig.schemas))) {
+    const component = readJson(file);
+    if (component && component.key) schemasByKey[component.key] = { file, component };
+  }
+  const requiredOf = (ref) => {
+    const entry = ref && ref.key && schemasByKey[ref.key];
+    const req = entry && entry.component.attributes && entry.component.attributes.schema && entry.component.attributes.schema.required;
+    return Array.isArray(req) ? req : [];
+  };
+
+  // Flows offered with a back-office New button: records/*.json menu items with config.payload.{workflow, create}
+  const newButtonFlows = new Set();
+  const configuredDomain = (readJson('vnext.config.json') || {}).domain;
+  const collectCreate = (node) => {
+    if (Array.isArray(node)) { node.forEach(collectCreate); return; }
+    if (!node || typeof node !== 'object') return;
+    const payload = node.config && node.config.payload;
+    if (payload && payload.workflow && payload.create && (!payload.domain || payload.domain === configuredDomain)) {
+      newButtonFlows.add(payload.workflow);
+    }
+    Object.values(node).forEach((v) => { if (v && typeof v === 'object') collectCreate(v); });
+  };
+  for (const file of listJson('records')) collectCreate(readJson(file));
+
+  for (const file of listJson(path.join(domainName, pathsConfig.workflows))) {
+    const wf = readJson(file);
+    const attrs = wf && wf.attributes;
+    if (!attrs || !attrs.startTransition) continue;
+    const startRef = attrs.startTransition.schema;
+    const startRequired = requiredOf(startRef);
+    // 1. The first data write is validated against the flow's master schema as well as the start schema:
+    //    a field the master requires but the start does not lets the start through and then fails it (500).
+    const masterMissing = requiredOf(attrs.schema).filter((f) => !startRequired.includes(f));
+    if (masterMissing.length > 0) {
+      warn(file, 'attributes.schema',
+        `master schema "${attrs.schema.key}" requires [${masterMissing.join(', ')}], which the start schema does not require — ` +
+        `a start without them passes the start schema and then fails (500 "Start transition validation failed"). ` +
+        `Masters carry no required; collect the value on a transition.`);
+    }
+    // 2. The back-office New button always starts with an empty body.
+    if (newButtonFlows.has(wf.key) && startRequired.length > 0) {
+      warn(file, 'attributes.startTransition.schema',
+        `"${wf.key}" has a back-office New button (records/) but its start schema "${startRef.key}" requires ` +
+        `[${startRequired.join(', ')}] — New sends an empty body, so every click fails (400) and no record is created. ` +
+        `Make the start schema free of required and collect these on the first manual transition.`);
+    }
+  }
+
+  if (authoringWarnings === 0) console.log(`  ✓ No authoring issues found`);
+  else console.log(`  ⚠ ${authoringWarnings} authoring warning(s) — the run still passes; fix them before publishing`);
+  return true;
+});
+
 // Validation 6: Module functionality test
 validate('Module functionality test', () => {
   const vnextTemplate = require('./index.js');
@@ -998,6 +1116,9 @@ console.log('═'.repeat(60));
 console.log(`   ✅ Passed: ${colorize(validationsPassed, 'green')}`);
 console.log(`   ❌ Failed: ${colorize(validationsFailed, 'red')}`);
 console.log(`   📈 Total:  ${validationsPassed + validationsFailed}`);
+if (authoringWarnings > 0) {
+  console.log(`   ⚠ Authoring warnings: ${colorize(authoringWarnings, 'yellow')}`);
+}
 
 // Print schema validation statistics if enabled
 if (schemaValidationStats.enabled) {
