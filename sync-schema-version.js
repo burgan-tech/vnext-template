@@ -28,22 +28,30 @@ try {
   
   let packageJsonChanged = false;
   
-  // Check if version needs updating
-  const currentVersion = packageJson.dependencies[schemaPackage];
-  if (currentVersion !== versionRange) {
-    packageJson.dependencies[schemaPackage] = versionRange;
-    
-    // Write updated package.json
+  // Check if version needs updating. The package is listed in BOTH dependencies and devDependencies;
+  // validate.js resolves whichever npm installed, so a devDependency left on an older caret range
+  // (^0.0.x pins exactly one version) validates the domain against a stale schema.
+  const sections = ['dependencies', 'devDependencies'];
+  for (const section of sections) {
+    if (section !== 'dependencies' && !(packageJson[section] && packageJson[section][schemaPackage])) {
+      continue; // only touch devDependencies when the package is already listed there
+    }
+    const currentVersion = packageJson[section][schemaPackage];
+    if (currentVersion !== versionRange) {
+      packageJson[section][schemaPackage] = versionRange;
+      console.log(`✓ Updated ${schemaPackage} to ${versionRange} in package.json ${section} (was ${currentVersion || 'absent'})`);
+      packageJsonChanged = true;
+    } else {
+      console.log(`✓ ${schemaPackage} is already at ${versionRange} in ${section}`);
+    }
+  }
+
+  if (packageJsonChanged) {
     fs.writeFileSync(
       packageJsonPath,
       JSON.stringify(packageJson, null, 2) + '\n',
       'utf8'
     );
-    
-    console.log(`✓ Updated ${schemaPackage} to ${versionRange} in package.json`);
-    packageJsonChanged = true;
-  } else {
-    console.log(`✓ ${schemaPackage} is already at ${versionRange}`);
   }
 
   // If package.json was changed, warn that npm install may need to be run again
